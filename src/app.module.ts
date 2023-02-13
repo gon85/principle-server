@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { AppConfigModule } from './config/app-config.module';
 import { MySqlConfigService } from './config/db/mysql-config.service';
 import { CorparationModule } from './modules/corparation/corparation.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CorparationModule } from './modules/corparation/corparation.module';
       inject: [MySqlConfigService],
     }),
     CorparationModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

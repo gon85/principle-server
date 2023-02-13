@@ -45,7 +45,7 @@ export default class Trading {
   @Column({ type: 'int', default: 0, comment: tDesc.sumBuyCnt })
   sumBuyCnt!: number;
 
-  @Column({ type: 'int', precision: 12, scale: 2, default: 0, comment: tDesc.avgSellPrice })
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0, comment: tDesc.avgSellPrice })
   avgSellPrice!: number;
 
   @Column({ type: 'int', default: 0, comment: tDesc.sumSellCnt })

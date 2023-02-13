@@ -17,6 +17,7 @@ export class MySqlConfigService implements TypeOrmOptionsFactory {
       host: this.configService.get<string>('DB_HOST'),
       database: this.configService.get<string>('DB_SCHEMA'),
       entities: [join(__dirname, '../../modules/**/*.entity{.ts,.js}')],
+      subscribers: [join(__dirname, '../../modules/**/*.subscriber{.ts,.js}')],
       autoLoadEntities: true,
       synchronize: true,
       // logging: true,

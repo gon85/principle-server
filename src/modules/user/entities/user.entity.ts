@@ -1,3 +1,4 @@
+import { IsEmail, IsOptional, IsString } from 'class-validator';
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 const uDesc = {
@@ -28,6 +29,7 @@ export default class User {
     nullable: false,
     comment: uDesc.email,
   })
+  @IsEmail()
   email: string;
 
   @Column({
@@ -37,6 +39,7 @@ export default class User {
     nullable: false,
     comment: uDesc.pw,
   })
+  @IsString()
   pw: string;
 
   @Column({
@@ -46,6 +49,7 @@ export default class User {
     nullable: false,
     comment: uDesc.firstName,
   })
+  @IsOptional()
   firstName: string;
 
   @Column({
@@ -55,6 +59,7 @@ export default class User {
     nullable: false,
     comment: uDesc.lastName,
   })
+  @IsOptional()
   lastName: string;
 
   @Column({
@@ -65,6 +70,7 @@ export default class User {
     default: 1,
     comment: uDesc.isActive,
   })
+  @IsOptional()
   isActive: boolean;
 
   @Column({
@@ -75,6 +81,7 @@ export default class User {
     default: 0,
     comment: uDesc.isDeleted,
   })
+  @IsOptional()
   isDeleted: boolean;
 
   @CreateDateColumn()

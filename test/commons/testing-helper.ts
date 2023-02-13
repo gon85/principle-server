@@ -95,3 +95,10 @@ export async function getUserTester(email = 'adminDevTester@thegifting.io', pw =
 
   return user;
 }
+
+export function getTester() {
+  const client = request(appLola.getHttpServer());
+  const user = new UserTester(client);
+
+  return user;
+}
