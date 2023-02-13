@@ -1,0 +1,40 @@
+import dayjs from 'dayjs';
+
+export const DATETIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+export const DATE_FORMAT = 'YYYY-MM-DD';
+export const TIME_FROMAT = 'HH:mm:ss';
+
+const datetimeUtils = {
+  getNowDayjs() {
+    return dayjs().clone();
+  },
+  getNowString(format = DATETIME_FORMAT) {
+    return datetimeUtils.getNowDayjs().format(format);
+  },
+  getDayjs(date?: dayjs.ConfigType, format?: dayjs.OptionType, strict?: boolean) {
+    return dayjs(date, format, strict).clone();
+  },
+  // getTodayMoment() {
+  //   return moment(datetimeUtils.getNowMoment().format('YYYY-MM-DD'), 'YYYY-MM-DD');
+  // },
+  // getTodayString() {
+  //   return datetimeUtils.getNowMoment().format('YYYY-MM-DD');
+  // },
+  // getMoment(date: moment.MomentInput, format = 'YYYY-MM-DD HH:mm:ss') {
+  //   return moment(date, format).clone();
+  // },
+  // getMomentByDate(date: Date) {
+  //   return moment(date).clone();
+  // },
+  // getFormattedAddDate(interval: number, unit: unitOfTime.Base = 'month') {
+  //   return datetimeUtils.getNowMoment().add(interval, unit).format('YYYY-MM-DD HH:mm:ss');
+  // },
+  // isBeforeNow(date: Date) {
+  //   return datetimeUtils.getNowMoment().isBefore(date);
+  // },
+  // unixtimeToFormatted(timestamp: number | string, format = 'YYYY-MM-DD HH:mm:ss') {
+  //   return datetimeUtils.getMoment(timestamp, 'X').format(format);
+  // },
+};
+
+export default datetimeUtils;

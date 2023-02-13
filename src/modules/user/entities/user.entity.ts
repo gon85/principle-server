@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 const uDesc = {
   id: 'user key',
@@ -8,7 +8,7 @@ const uDesc = {
   lastName: 'last name',
   isActive: '휴면여부',
   isDeleted: '탈퇴여부',
-}
+};
 
 @Entity('user')
 @Index('ui_user', ['email'])
@@ -57,21 +57,23 @@ export default class User {
   })
   lastName: string;
 
-  @Column({ 
+  @Column({
     name: 'is_active',
     type: 'tinyint',
+    width: 1,
     nullable: false,
-    default: 1, 
-    comment: uDesc.isActive
+    default: 1,
+    comment: uDesc.isActive,
   })
   isActive: boolean;
 
-  @Column({ 
+  @Column({
     name: 'is_deleted',
     type: 'tinyint',
+    width: 1,
     nullable: false,
-    default: 0, 
-    comment: uDesc.isDeleted
+    default: 0,
+    comment: uDesc.isDeleted,
   })
   isDeleted: boolean;
 
