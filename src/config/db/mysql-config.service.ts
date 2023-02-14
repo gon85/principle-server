@@ -21,6 +21,7 @@ export class MySqlConfigService implements TypeOrmOptionsFactory {
       autoLoadEntities: true,
       synchronize: true,
       // logging: true,
+      timezone: 'Z',
       namingStrategy: new SnakeNamingStrategy(),
     };
   }

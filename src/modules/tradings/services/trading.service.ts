@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import PageInfoDto from '@src/commons/dto/page-info.dto';
+import datetimeUtils from '@src/commons/utils/datetime-utils';
 import { flatten, omit, orderBy } from 'lodash';
 import { DataSource, EntityManager, IsNull, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { TradingTrxDto } from '../dto/trading-trx.dto';
@@ -17,13 +18,14 @@ export class TradingService {
     private ttRepo: Repository<TradingTrx>,
   ) {}
 
-  public async getTradingInfo(userId: number, pageInfo: PageInfoDto) {
+  public async getTradingInfo(userId: number, pageInfo: PageInfoDto = PageInfoDto.create(1, 10000)) {
     const totalCount = await this.tRepo.count({
       where: {
         userId,
       },
     });
     const [noFinishList, noFinishCount] = await this.tRepo.findAndCount({
+      relations: ['tradingTrxes'],
       where: {
         userId,
         finishedAt: IsNull(),
@@ -40,6 +42,7 @@ export class TradingService {
     if (needCount <= 0) {
     } else {
       finishList = await this.tRepo.find({
+        relations: ['tradingTrxes'],
         where: {
           userId,
           finishedAt: Not(IsNull()), // LessThan(Utils.date.getNowDayjs().add(1, 'day').format(Utils.date.YYYYsMMsDD)),
@@ -91,8 +94,8 @@ export class TradingService {
       const ttGrouped = this.groupingTrxesIntoTradings(ttOrdereds);
       if (tTargets.length === 1 && ttGrouped.length === 1) {
         // 시계열순으로 입력되고 있음.
-        const tTarget = Trading.calculate(tTargets[0]);
-        await this.modifyTradingNTrxesInTrx(tTarget, ttGrouped[0]);
+        const tTarget = Trading.calculate(tTargets[0], ttGrouped[0]);
+        await this.modifyTradingNTrxesInTrx(tTarget, tTarget.tradingTrxes);
       } else {
         // 시계열순이 아닌 경우 무조건 재정렬
         await this.arrangeTradingMtx(userId, isuSrtCd, tTargets, ttGrouped);
@@ -109,25 +112,36 @@ export class TradingService {
    * @param tradingDt 기준일
    */
   private async getTradingMstsAfterDate(userId: number, isuSrtCd: string, tradingAt: Date) {
-    const ts = await this.tRepo.find({
-      where: [
-        {
-          userId,
-          isuSrtCd,
-          finishedAt: IsNull(),
-        },
-        {
-          userId,
-          isuSrtCd,
-          finishedAt: MoreThanOrEqual(tradingAt),
-        },
-      ],
-      order: {
-        startedAt: 'ASC',
-        finishedAt: 'ASC',
-      },
-    });
-    return ts;
+    const qbMain = this.tRepo
+      .createQueryBuilder('t')
+      .innerJoinAndSelect('t.tradingTrxes', 'tt')
+      .where('t.user_id = :userId', { userId })
+      .andWhere('t.isu_srt_cd = :isuSrtCd', { isuSrtCd })
+      .andWhere('t.finished_at is NULL OR t.finished_at >= :tradingAt', { tradingAt })
+      .orderBy('started_at', 'ASC')
+      .addOrderBy('finished_at', 'ASC');
+
+    return qbMain.getMany();
+    // const ts = await this.tRepo.find({
+    //   relations: ['tradingTrxes'],
+    //   where: [
+    //     {
+    //       userId,
+    //       isuSrtCd,
+    //       finishedAt: IsNull(),
+    //     },
+    //     {
+    //       userId,
+    //       isuSrtCd,
+    //       finishedAt: MoreThanOrEqual(tradingAt),
+    //     },
+    //   ],
+    //   order: {
+    //     startedAt: 'ASC',
+    //     finishedAt: 'ASC',
+    //   },
+    // });
+    // return ts;
   }
 
   private async addTradingNTrxes(tTarget: Trading) {
@@ -201,7 +215,7 @@ export class TradingService {
     let arrTt: TradingTrx[] = [];
     for (let index = 0; index < ttOrdereds.length; index++) {
       const tt = ttOrdereds[index];
-      remain += tt.cnt;
+      remain += tt.tradingTypeCd === 'B' ? tt.cnt : -tt.cnt;
       arrTt.push(tt);
       if (remain <= 0) {
         grouping.push(arrTt);

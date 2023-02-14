@@ -21,7 +21,7 @@ const tDesc = {
   sumBuyCnt: '매수금합계',
   avgSellPrice: '매도 평균가',
   sumSellCnt: '매도금합계',
-  remainCount: '남은 수량',
+  remainCount: '남은 수량 (음수 가능)',
   startedAt: '최초 거래일 (최초 매수일)',
   finishedAt: '최종 거래일 (최종 매도일)',
   createdAt: '생성일',
@@ -39,13 +39,41 @@ export default class Trading {
   @Column({ type: 'varchar', length: 12, comment: tDesc.isuSrtCd })
   isuSrtCd!: string;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0, comment: tDesc.avgBuyPrice })
+  @Column({
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+    comment: tDesc.avgBuyPrice,
+    transformer: {
+      to(data: number): number {
+        return data;
+      },
+      from(data: string): number {
+        return Number(data);
+      },
+    },
+  })
   avgBuyPrice!: number;
 
   @Column({ type: 'int', default: 0, comment: tDesc.sumBuyCnt })
   sumBuyCnt!: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0, comment: tDesc.avgSellPrice })
+  @Column({
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+    comment: tDesc.avgSellPrice,
+    transformer: {
+      to(data: number): number {
+        return data;
+      },
+      from(data: string): number {
+        return Number(data);
+      },
+    },
+  })
   avgSellPrice!: number;
 
   @Column({ type: 'int', default: 0, comment: tDesc.sumSellCnt })
@@ -78,7 +106,8 @@ export default class Trading {
   tradingTrxes!: TradingTrx[];
 
   static calculate(tTarget: Trading, tradingTrxes?: TradingTrx[]) {
-    const ttTargets = tTarget.tradingTrxes || tradingTrxes || [];
+    tTarget.tradingTrxes = tradingTrxes || tTarget.tradingTrxes;
+    const ttTargets = tTarget.tradingTrxes || [];
 
     const resultCal = ttTargets.reduce(
       (acc, tt, index) => {

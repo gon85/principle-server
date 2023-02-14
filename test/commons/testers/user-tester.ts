@@ -1,3 +1,4 @@
+import { HttpCode, HttpStatus } from '@nestjs/common';
 import * as request from 'supertest';
 
 export type UserTesterParams = string | object;
@@ -71,13 +72,12 @@ export class UserTester {
   }
 
   async login(email: string, pw: string) {
-    const rep = await this.post('/api/login', {
+    const rep = await this.post('/api/auth/login', {
       email,
-      password: pw,
+      pass: pw,
     });
-    expect(rep.statusCode).toEqual(200);
+    expect(rep.status).toEqual(HttpStatus.CREATED);
     // console.log('---->', rep.body);
     this.accessToken = rep.body.access_token;
-    this.userId = rep.body.adminIdx;
   }
 }

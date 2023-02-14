@@ -7,6 +7,7 @@ import { AppConfigModule } from './config/app-config.module';
 import { MySqlConfigService } from './config/db/mysql-config.service';
 import { CorparationModule } from './modules/corparation/corparation.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { TradingModule } from './modules/tradings/trading.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AuthModule } from './modules/auth/auth.module';
     }),
     CorparationModule,
     AuthModule,
+    TradingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

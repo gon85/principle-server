@@ -1,8 +1,11 @@
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
 export const DATETIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 export const DATE_FORMAT = 'YYYY-MM-DD';
 export const TIME_FROMAT = 'HH:mm:ss';
+
+dayjs.extend(utc);
 
 const datetimeUtils = {
   getNowDayjs() {
@@ -13,6 +16,13 @@ const datetimeUtils = {
   },
   getDayjs(date?: dayjs.ConfigType, format?: dayjs.OptionType, strict?: boolean) {
     return dayjs(date, format, strict).clone();
+  },
+  toUtcDate(date: string, format = DATETIME_FORMAT) {
+    const djs = datetimeUtils.getDayjs(date, { locale: 'ko', format });
+    return djs.toDate();
+  },
+  dateToUtc(date: Date) {
+    return dayjs(date).utc().toDate();
   },
   // getTodayMoment() {
   //   return moment(datetimeUtils.getNowMoment().format('YYYY-MM-DD'), 'YYYY-MM-DD');

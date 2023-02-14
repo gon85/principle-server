@@ -1,13 +1,17 @@
 import { INestApplication, Type, ValidationPipe, VersioningType } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '@src/app.module';
 // import { AdminTester } from './testers/admin-tester';
 // import { UserInfo, UserTester } from './testers/user-tester';
 import { EntityClassOrSchema } from '@nestjs/typeorm/dist/interfaces/entity-class-or-schema.type';
-import { ObjectLiteral, Repository } from 'typeorm';
+import { DataSource, In, ObjectLiteral, Repository } from 'typeorm';
 import { UserTester } from './testers/user-tester';
+import User from '@src/modules/user/entities/user.entity';
+import Trading from '@src/modules/tradings/entities/trading.entity';
+import TradingTrx from '@src/modules/tradings/entities/trading-trx.entity';
+import { AuthSenarioTest } from './senarios/auth-senarios-test';
 
 let appLola: INestApplication;
 
@@ -88,11 +92,36 @@ export const testingHelper = {
   getService,
 };
 
-export async function getUserTester(email = 'adminDevTester@thegifting.io', pw = '01!!xfortesting') {
+async function resetTestDataByEmail(email: string) {
+  const dataSource = getApp().get<DataSource>(DataSource);
+
+  const u = await dataSource.getRepository(User).findOne({ where: { email } });
+  if (!u) return null;
+
+  const tRepo = dataSource.getRepository(Trading);
+  const ttRepo = dataSource.getRepository(TradingTrx);
+
+  const tradings = await tRepo.find({ where: { userId: u.id } });
+  const tIds = tradings.map((t) => t.id);
+  await ttRepo.delete({ tradingId: In(tIds) });
+  await tRepo.delete({ id: In(tIds) });
+
+  return u;
+}
+
+export async function getUserTester(emailId: string, pw = '01!!xfortesting', options = { resetData: true }) {
   const client = request(appLola.getHttpServer());
   const user = new UserTester(client);
-  await user.login(email, pw);
+  const email = `${emailId}@e2e.com`;
 
+  const { resetData = true } = options;
+  const dbUser = await resetTestDataByEmail(email);
+  if (!dbUser) {
+    const ast = new AuthSenarioTest(appLola);
+    await ast.addUser(email, pw);
+  }
+
+  await user.login(email, pw);
   return user;
 }
 

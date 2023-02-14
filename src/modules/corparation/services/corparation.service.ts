@@ -12,9 +12,10 @@ export class CorparationService {
     private corRepo: Repository<Corparation>,
   ) {}
 
-  public async initializeCorpCodes() {
+  public async initializeCorpCodes(isDefault = false) {
     // 코스피, 코스닥
     await this.corRepo.upsert(this.getDefaultCorps(), ['isuSrtCd']);
+    if (isDefault) return;
 
     const rep = await clientAxios.getStockAllCode();
     const stockCodes = rep.OutBlock_1;
