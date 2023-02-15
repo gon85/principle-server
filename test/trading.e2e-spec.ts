@@ -5,7 +5,7 @@ import Corparation from '@src/modules/corparation/entities/corparation.entity';
 import { CorparationService } from '@src/modules/corparation/services/corparation.service';
 import { TradingInfoDto } from '@src/modules/tradings/dto/trading-info.dto';
 import { TradingTrxDto } from '@src/modules/tradings/dto/trading-trx.dto';
-import Trading from '@src/modules/tradings/entities/trading.entity';
+import TradingMst from '@src/modules/tradings/entities/trading-mst.entity';
 import { UserRegisterDto } from '@src/modules/user/dtos/user-register.dto';
 import User from '@src/modules/user/entities/user.entity';
 import { getTester, getUserTester, testingHelper } from './commons/testing-helper';
@@ -42,7 +42,7 @@ describe('Test trading e2e ', () => {
     },
     /**
      * expect!!
-     * @param tm {Trading}
+     * @param tm {TradingMst}
      * @param sDt 거래시작일
      * @param fDt 거래완료일
      * @param abp 매수평균가
@@ -50,7 +50,7 @@ describe('Test trading e2e ', () => {
      * @param rc 남은 수량
      * @param ttLength 거래trx 갯수
      */
-    expectTrading(tm: Trading, sDt: Date, fDt: Date | null, abp: number, asp: number, rc: number, ttLength: number) {
+    expectTrading(tm: TradingMst, sDt: Date, fDt: Date | null, abp: number, asp: number, rc: number, ttLength: number) {
       expect(datetimeUtils.getDayjs(tm.startedAt).format(DATETIME_FORMAT)).toEqual(
         datetimeUtils.getDayjs(sDt).format(DATETIME_FORMAT),
       );

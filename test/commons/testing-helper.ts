@@ -9,7 +9,7 @@ import { EntityClassOrSchema } from '@nestjs/typeorm/dist/interfaces/entity-clas
 import { DataSource, In, ObjectLiteral, Repository } from 'typeorm';
 import { UserTester } from './testers/user-tester';
 import User from '@src/modules/user/entities/user.entity';
-import Trading from '@src/modules/tradings/entities/trading.entity';
+import TradingMst from '@src/modules/tradings/entities/trading-mst.entity';
 import TradingTrx from '@src/modules/tradings/entities/trading-trx.entity';
 import { AuthSenarioTest } from './senarios/auth-senarios-test';
 
@@ -98,7 +98,7 @@ async function resetTestDataByEmail(email: string) {
   const u = await dataSource.getRepository(User).findOne({ where: { email } });
   if (!u) return null;
 
-  const tRepo = dataSource.getRepository(Trading);
+  const tRepo = dataSource.getRepository(TradingMst);
   const ttRepo = dataSource.getRepository(TradingTrx);
 
   const tradings = await tRepo.find({ where: { userId: u.id } });

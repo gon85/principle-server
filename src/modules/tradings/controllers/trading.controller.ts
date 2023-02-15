@@ -3,22 +3,12 @@ import {
   Post,
   Body,
   UseGuards,
-  Req,
-  Put,
-  Param,
   Request,
   Get,
   UseInterceptors,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
-import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiNotFoundResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ErrorResponseDto } from '@src/commons/dto/error-response.dto';
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';
 import { TradingInfoDto } from '../dto/trading-info.dto';

@@ -6,25 +6,25 @@ import { flatten, omit, orderBy } from 'lodash';
 import { DataSource, EntityManager, IsNull, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { TradingTrxDto } from '../dto/trading-trx.dto';
 import TradingTrx from '../entities/trading-trx.entity';
-import Trading from '../entities/trading.entity';
+import TradingMst from '../entities/trading-mst.entity';
 
 @Injectable()
 export class TradingService {
   constructor(
     private dataSource: DataSource,
-    @InjectRepository(Trading)
-    private tRepo: Repository<Trading>,
+    @InjectRepository(TradingMst)
+    private tmRepo: Repository<TradingMst>,
     @InjectRepository(TradingTrx)
     private ttRepo: Repository<TradingTrx>,
   ) {}
 
   public async getTradingInfo(userId: number, pageInfo: PageInfoDto = PageInfoDto.create(1, 10000)) {
-    const totalCount = await this.tRepo.count({
+    const totalCount = await this.tmRepo.count({
       where: {
         userId,
       },
     });
-    const [noFinishList, noFinishCount] = await this.tRepo.findAndCount({
+    const [noFinishList, noFinishCount] = await this.tmRepo.findAndCount({
       relations: ['tradingTrxes'],
       where: {
         userId,
@@ -38,10 +38,10 @@ export class TradingService {
     });
 
     const needCount = pageInfo.countPerPage - noFinishList.length;
-    let finishList: Trading[] = [];
+    let finishList: TradingMst[] = [];
     if (needCount <= 0) {
     } else {
-      finishList = await this.tRepo.find({
+      finishList = await this.tmRepo.find({
         relations: ['tradingTrxes'],
         where: {
           userId,
@@ -80,25 +80,25 @@ export class TradingService {
     const { isuSrtCd, tradingAt } = ttDto;
     const ttNew = this.ttRepo.create(ttDto);
 
-    const tTargets = await this.getTradingMstsAfterDate(userId, isuSrtCd, tradingAt);
-    if (!tTargets || tTargets.length === 0) {
+    const tmTargets = await this.getTradingMstsAfterDate(userId, isuSrtCd, tradingAt);
+    if (!tmTargets || tmTargets.length === 0) {
       // 최초 입력!
-      const tNew = this.tRepo.create({ userId, isuSrtCd, tradingTrxes: [ttNew] });
-      Trading.calculate(tNew);
-      await this.addTradingNTrxes(tNew);
+      const tmNew = this.tmRepo.create({ userId, isuSrtCd, tradingTrxes: [ttNew] });
+      TradingMst.calculate(tmNew);
+      await this.addTradingNTrxes(tmNew);
     } else {
       // trading_trx가 시간순으로 정렬 필요. - trading은 매수 -> 매도 완료가 한 묶음(수량이 0이 되는 시점)
       // 기준일 이후의 모든 trading은 재배열해야 함. (trading_trx가 시간순으로 입력된다는 보장이 없음.)
       // 기존것 삭제하고, 새롭게 모두 인서트.
-      const ttOrdereds = this.orderingTrxesByTrading(tTargets, ttNew);
+      const ttOrdereds = this.orderingTrxesByTrading(tmTargets, ttNew);
       const ttGrouped = this.groupingTrxesIntoTradings(ttOrdereds);
-      if (tTargets.length === 1 && ttGrouped.length === 1) {
+      if (tmTargets.length === 1 && ttGrouped.length === 1) {
         // 시계열순으로 입력되고 있음.
-        const tTarget = Trading.calculate(tTargets[0], ttGrouped[0]);
-        await this.modifyTradingNTrxesInTrx(tTarget, tTarget.tradingTrxes);
+        const tmTarget = TradingMst.calculate(tmTargets[0], ttGrouped[0]);
+        await this.modifyTradingNTrxesInTrx(tmTarget, tmTarget.tradingTrxes);
       } else {
         // 시계열순이 아닌 경우 무조건 재정렬
-        await this.arrangeTradingMtx(userId, isuSrtCd, tTargets, ttGrouped);
+        await this.arrangeTradingMtx(userId, isuSrtCd, tmTargets, ttGrouped);
       }
     }
 
@@ -112,7 +112,7 @@ export class TradingService {
    * @param tradingDt 기준일
    */
   private async getTradingMstsAfterDate(userId: number, isuSrtCd: string, tradingAt: Date) {
-    const qbMain = this.tRepo
+    const qbMain = this.tmRepo
       .createQueryBuilder('t')
       .innerJoinAndSelect('t.tradingTrxes', 'tt')
       .where('t.user_id = :userId', { userId })
@@ -144,64 +144,69 @@ export class TradingService {
     // return ts;
   }
 
-  private async addTradingNTrxes(tTarget: Trading) {
+  private async addTradingNTrxes(tmTarget: TradingMst) {
     await this.dataSource.transaction(async (trx) => {
-      await this.addTradingNTrxesInTrx(tTarget)(trx);
+      await this.addTradingNTrxesInTrx(tmTarget)(trx);
     });
   }
 
-  private addTradingNTrxesInTrx(tTarget: Trading) {
+  private addTradingNTrxesInTrx(tmTarget: TradingMst) {
     return async (trx: EntityManager) => {
-      const tTrxRepo = trx.getRepository(Trading);
+      const tTrxRepo = trx.getRepository(TradingMst);
       const ttTrxRepo = trx.getRepository(TradingTrx);
 
-      const ir = await tTrxRepo.insert(tTarget);
-      tTarget.id = ir.generatedMaps[0].id;
-      tTarget.tradingTrxes?.map((tt) => {
-        tt.tradingId = tTarget.id;
+      const ir = await tTrxRepo.insert(tmTarget);
+      tmTarget.id = ir.generatedMaps[0].id;
+      tmTarget.tradingTrxes?.map((tt) => {
+        tt.tradingId = tmTarget.id;
       });
-      await ttTrxRepo.upsert(tTarget.tradingTrxes, ['id']);
+      await ttTrxRepo.upsert(tmTarget.tradingTrxes, ['id']);
     };
   }
 
-  private async modifyTradingNTrxesInTrx(t: Trading, tts: TradingTrx[]) {
+  private async modifyTradingNTrxesInTrx(tm: TradingMst, tts: TradingTrx[]) {
     await this.dataSource.transaction(async (trx) => {
-      const tTrxRepo = trx.getRepository(Trading);
+      const tTrxRepo = trx.getRepository(TradingMst);
       const ttTrxRepo = trx.getRepository(TradingTrx);
 
-      const tModify = omit(t, ['id', 'createdAt', 'updatedAt', 'tradingTrxes']);
-      await tTrxRepo.update(t.id, tModify);
+      const tModify = omit(tm, ['id', 'createdAt', 'updatedAt', 'tradingTrxes']);
+      await tTrxRepo.update(tm.id, tModify);
 
       tts.map((tt) => {
-        tt.tradingId = t.id;
+        tt.tradingId = tm.id;
       });
       await ttTrxRepo.upsert(tts, ['id']);
     });
   }
 
-  private removeTradingsInTrx(tTargets: Trading[]) {
+  private removeTradingsInTrx(tmTargets: TradingMst[]) {
     return async (trx: EntityManager) => {
-      const tTrxRepo = trx.getRepository(Trading);
+      const tTrxRepo = trx.getRepository(TradingMst);
 
-      const ids = tTargets.map((t) => t.id);
+      const ids = tmTargets.map((t) => t.id);
       await tTrxRepo.delete(ids);
     };
   }
 
-  private async arrangeTradingMtx(userId: number, isuSrtCd: string, tTargets: Trading[], ttGrouped: TradingTrx[][]) {
+  private async arrangeTradingMtx(
+    userId: number,
+    isuSrtCd: string,
+    tmTargets: TradingMst[],
+    ttGrouped: TradingTrx[][],
+  ) {
     await this.dataSource.transaction(async (trx) => {
       for (let index = 0; index < ttGrouped.length; index++) {
         const ttNews = ttGrouped[index];
-        const tNew = this.tRepo.create({ userId, isuSrtCd, tradingTrxes: ttNews });
-        Trading.calculate(tNew);
-        await this.addTradingNTrxesInTrx(tNew)(trx);
+        const tmNew = this.tmRepo.create({ userId, isuSrtCd, tradingTrxes: ttNews });
+        TradingMst.calculate(tmNew);
+        await this.addTradingNTrxesInTrx(tmNew)(trx);
       }
-      await this.removeTradingsInTrx(tTargets)(trx);
+      await this.removeTradingsInTrx(tmTargets)(trx);
     });
   }
 
-  private orderingTrxesByTrading(tradings: Trading[], ttNew?: TradingTrx) {
-    const tts = tradings.map((t) => t.tradingTrxes);
+  private orderingTrxesByTrading(tms: TradingMst[], ttNew?: TradingTrx) {
+    const tts = tms.map((t) => t.tradingTrxes);
     const ttTargets = flatten(tts);
     if (ttNew) ttTargets.push(ttNew);
 

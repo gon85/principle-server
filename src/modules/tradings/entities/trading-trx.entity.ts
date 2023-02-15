@@ -2,7 +2,7 @@ import datetimeUtils from '@src/commons/utils/datetime-utils';
 import { Transform, TransformInstanceToPlain, Type } from 'class-transformer';
 import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import Trading from './trading.entity';
+import TradingMst from './trading-mst.entity';
 
 const ttDesc = {
   id: 'primary key',
@@ -85,7 +85,7 @@ export default class TradingTrx {
   //   this.createdDate = new Date();
   // }
 
-  @ManyToOne(() => Trading, (t) => t.tradingTrxes)
+  @ManyToOne(() => TradingMst, (t) => t.tradingTrxes)
   @JoinColumn({ name: 'trading_id', referencedColumnName: 'id' })
-  trading!: Trading;
+  tradingMst!: TradingMst;
 }

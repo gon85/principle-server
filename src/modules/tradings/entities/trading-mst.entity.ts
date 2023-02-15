@@ -1,13 +1,4 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { TradingTypes } from '../types/enums';
 import TradingTrx from './trading-trx.entity';
 // import CompanyMst from '../krx/CompanyMst';
@@ -29,7 +20,7 @@ const tDesc = {
 };
 
 @Entity()
-export default class Trading {
+export default class TradingMst {
   @PrimaryGeneratedColumn({ type: 'int', unsigned: true, comment: tDesc.id })
   id!: number;
 
@@ -102,10 +93,10 @@ export default class Trading {
   // @JoinColumn({ name: 'isu_srt_cd' })
   // company!: CompanyMst;
 
-  @OneToMany(() => TradingTrx, (tt) => tt.trading)
+  @OneToMany(() => TradingTrx, (tt) => tt.tradingMst)
   tradingTrxes!: TradingTrx[];
 
-  static calculate(tTarget: Trading, tradingTrxes?: TradingTrx[]) {
+  static calculate(tTarget: TradingMst, tradingTrxes?: TradingTrx[]) {
     tTarget.tradingTrxes = tradingTrxes || tTarget.tradingTrxes;
     const ttTargets = tTarget.tradingTrxes || [];
 
