@@ -117,7 +117,7 @@ export class TradingService {
       .innerJoinAndSelect('t.tradingTrxes', 'tt')
       .where('t.user_id = :userId', { userId })
       .andWhere('t.isu_srt_cd = :isuSrtCd', { isuSrtCd })
-      .andWhere('t.finished_at is NULL OR t.finished_at >= :tradingAt', { tradingAt })
+      .andWhere('(t.finished_at is NULL OR t.finished_at >= :tradingAt)', { tradingAt })
       .orderBy('started_at', 'ASC')
       .addOrderBy('finished_at', 'ASC');
 
@@ -166,11 +166,11 @@ export class TradingService {
 
   private async modifyTradingNTrxesInTrx(tm: TradingMst, tts: TradingTrx[]) {
     await this.dataSource.transaction(async (trx) => {
-      const tTrxRepo = trx.getRepository(TradingMst);
+      const tmTrxRepo = trx.getRepository(TradingMst);
       const ttTrxRepo = trx.getRepository(TradingTrx);
 
       const tModify = omit(tm, ['id', 'createdAt', 'updatedAt', 'tradingTrxes']);
-      await tTrxRepo.update(tm.id, tModify);
+      await tmTrxRepo.update(tm.id, tModify);
 
       tts.map((tt) => {
         tt.tradingId = tm.id;

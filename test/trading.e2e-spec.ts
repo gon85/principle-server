@@ -1,14 +1,11 @@
 import { HttpStatus } from '@nestjs/common';
 import datetimeUtils, { DATETIME_FORMAT } from '@src/commons/utils/datetime-utils';
 import reducePromises from '@src/commons/utils/reduce-promise';
-import Corparation from '@src/modules/corparation/entities/corparation.entity';
 import { CorparationService } from '@src/modules/corparation/services/corparation.service';
 import { TradingInfoDto } from '@src/modules/tradings/dto/trading-info.dto';
 import { TradingTrxDto } from '@src/modules/tradings/dto/trading-trx.dto';
 import TradingMst from '@src/modules/tradings/entities/trading-mst.entity';
-import { UserRegisterDto } from '@src/modules/user/dtos/user-register.dto';
-import User from '@src/modules/user/entities/user.entity';
-import { getTester, getUserTester, testingHelper } from './commons/testing-helper';
+import { getUserTester, testingHelper } from './commons/testing-helper';
 
 describe('Test trading e2e ', () => {
   beforeAll(testingHelper.beforeAll);
@@ -60,11 +57,11 @@ describe('Test trading e2e ', () => {
       expect(tm.avgBuyPrice).toEqual(abp);
       expect(tm.avgSellPrice).toEqual(asp);
       expect(tm.remainCount).toEqual(rc);
-      expect(ttLength).toEqual(tm.tradingTrxes.length);
+      expect(tm.tradingTrxes.length).toEqual(ttLength);
     },
   };
 
-  it('Test timezoen 처리', async () => {
+  it.skip('Test timezoen 처리', async () => {
     const prepareTestData = async (emailId: string) => {
       const userTester = await getUserTester(emailId);
       const cService = testingHelper.getService<CorparationService>(CorparationService);

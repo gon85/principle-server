@@ -98,13 +98,13 @@ async function resetTestDataByEmail(email: string) {
   const u = await dataSource.getRepository(User).findOne({ where: { email } });
   if (!u) return null;
 
-  const tRepo = dataSource.getRepository(TradingMst);
+  const tmRepo = dataSource.getRepository(TradingMst);
   const ttRepo = dataSource.getRepository(TradingTrx);
 
-  const tradings = await tRepo.find({ where: { userId: u.id } });
+  const tradings = await tmRepo.find({ where: { userId: u.id } });
   const tIds = tradings.map((t) => t.id);
   await ttRepo.delete({ tradingId: In(tIds) });
-  await tRepo.delete({ id: In(tIds) });
+  await tmRepo.delete({ id: In(tIds) });
 
   return u;
 }
