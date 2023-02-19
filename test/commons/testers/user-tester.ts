@@ -78,6 +78,6 @@ export class UserTester {
     });
     expect(rep.status).toEqual(HttpStatus.CREATED);
     // console.log('---->', rep.body);
-    this.accessToken = rep.body.access_token;
+    this.accessToken = rep.body.accessToken;
   }
 }

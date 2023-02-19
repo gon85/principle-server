@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import PageInfoDto from '@src/commons/dto/page-info.dto';
-import datetimeUtils from '@src/commons/utils/datetime-utils';
-import { flatten, omit, orderBy } from 'lodash';
-import { DataSource, EntityManager, IsNull, MoreThanOrEqual, Not, Repository } from 'typeorm';
+import { findIndex, flatten, omit, orderBy, pick } from 'lodash';
+import { DataSource, EntityManager, IsNull, Not, Repository } from 'typeorm';
 import { TradingTrxDto } from '../dto/trading-trx.dto';
 import TradingTrx from '../entities/trading-trx.entity';
 import TradingMst from '../entities/trading-mst.entity';
@@ -95,7 +94,7 @@ export class TradingService {
       if (tmTargets.length === 1 && ttGrouped.length === 1) {
         // 시계열순으로 입력되고 있음.
         const tmTarget = TradingMst.calculate(tmTargets[0], ttGrouped[0]);
-        await this.modifyTradingNTrxesInTrx(tmTarget, tmTarget.tradingTrxes);
+        await this.modifyTradingNTrxes(tmTarget, tmTarget.tradingTrxes);
       } else {
         // 시계열순이 아닌 경우 무조건 재정렬
         await this.arrangeTradingMtx(userId, isuSrtCd, tmTargets, ttGrouped);
@@ -103,6 +102,66 @@ export class TradingService {
     }
 
     return await this.getTradingInfo(userId, pageInfo);
+  }
+
+  async removeTradingByTrx(userId: number, isuSrtCd: string, ttId: number) {
+    const ttTarget = await this.ttRepo.findOneBy({ id: ttId });
+    const tmTargets = await this.getTradingMstsAfterDate(userId, isuSrtCd, ttTarget.tradingAt);
+    const txList = this.orderingTrxesByTrading(tmTargets);
+    const findedIndex = findIndex(txList, (tx) => {
+      return tx.id === ttTarget.id;
+    });
+    if (findedIndex >= 0) {
+      txList.splice(findedIndex, 1);
+      const groupingTx = this.groupingTrxesIntoTradings(txList);
+      if (tmTargets.length === 1) {
+        if (groupingTx.length === 1 && groupingTx[0].length > 0) {
+          // 삭제 후 계산만
+          await this.removeTradingTrxInMst(ttTarget, tmTargets[0], groupingTx[0]);
+        } else {
+          // 모두 삭제
+          await this.removeTradingMst(tmTargets[0]);
+        }
+      } else {
+        // 삭제 후 재배열
+        await this.removeTradingTrxInMstNArrange(ttTarget, userId, isuSrtCd, tmTargets, groupingTx);
+      }
+    }
+    return this.getTradingInfo(userId);
+  }
+
+  public async modifyTradingByTrx(userId: number, ttdTarget: TradingTrxDto) {
+    const { isuSrtCd, id: ttId } = ttdTarget;
+    const ttOrg = await this.ttRepo.findOneBy({ id: ttdTarget.id });
+    const ttModifyValue = pick(ttdTarget, ['price', 'tradingAt', 'tradingDate', 'tradingTime', 'cnt']);
+    // await this.modifyTradingTrx(tt);
+    const targetDt = ttOrg.tradingAt < ttdTarget.tradingAt ? ttOrg.tradingAt : ttdTarget.tradingAt;
+    // 변경된 기준으로 대상 tm으로 가져온다.
+    const tmTargets = await this.getTradingMstsAfterDate(userId, isuSrtCd, targetDt);
+    const tmApplied = this.applyModifyTxInTradings(tmTargets, ttdTarget, ttModifyValue);
+    const txList = this.orderingTrxesByTrading(tmApplied);
+    const findedIndex = findIndex(txList, (tx) => {
+      return tx.id === ttId;
+    });
+    if (findedIndex < 0) {
+      // const tt = pick(ttdTarget, ['price', 'tradingAt', 'tradingDate', 'tradingTime', 'cnt']);
+      // await this.ttRepo.update(ttId, tt);
+    } else {
+      await this.dataSource.transaction(async (trx) => {
+        const ttTrxRepo = trx.getRepository(TradingTrx);
+        await ttTrxRepo.update(ttId, ttModifyValue);
+
+        const groupingTx = this.groupingTrxesIntoTradings(txList);
+        if (tmTargets.length === 1 && groupingTx.length === 1) {
+          TradingMst.calculate(tmTargets[0], txList);
+          await this.modifyTradingNTrxesInTrx(tmTargets[0], txList)(trx);
+        } else {
+          await this.arrangeTradingMtxInTrx(userId, isuSrtCd, tmTargets, groupingTx)(trx);
+        }
+      });
+    }
+
+    return this.getTradingInfo(userId);
   }
 
   /**
@@ -164,8 +223,39 @@ export class TradingService {
     };
   }
 
-  private async modifyTradingNTrxesInTrx(tm: TradingMst, tts: TradingTrx[]) {
+  private applyModifyTxInTradings(
+    tmTargets: TradingMst[],
+    ttdTarget: TradingTrxDto,
+    ttModifyValue: Partial<TradingTrx>,
+  ) {
+    const tmModifies = tmTargets.map((tm) => {
+      const tts = tm.tradingTrxes.map((tt) => {
+        if (tt.id !== ttdTarget.id) {
+          return { ...tt };
+        } else {
+          return {
+            ...tt,
+            ...ttModifyValue,
+          };
+        }
+      });
+      return {
+        ...tm,
+        tradingTrxes: tts,
+      };
+    });
+
+    return tmModifies;
+  }
+
+  private async modifyTradingNTrxes(tm: TradingMst, tts: TradingTrx[]) {
     await this.dataSource.transaction(async (trx) => {
+      await this.modifyTradingNTrxesInTrx(tm, tts)(trx);
+    });
+  }
+
+  private modifyTradingNTrxesInTrx(tm: TradingMst, tts: TradingTrx[]) {
+    return async (trx: EntityManager) => {
       const tmTrxRepo = trx.getRepository(TradingMst);
       const ttTrxRepo = trx.getRepository(TradingTrx);
 
@@ -176,7 +266,7 @@ export class TradingService {
         tt.tradingId = tm.id;
       });
       await ttTrxRepo.upsert(tts, ['id']);
-    });
+    };
   }
 
   private removeTradingsInTrx(tmTargets: TradingMst[]) {
@@ -195,6 +285,12 @@ export class TradingService {
     ttGrouped: TradingTrx[][],
   ) {
     await this.dataSource.transaction(async (trx) => {
+      await this.arrangeTradingMtxInTrx(userId, isuSrtCd, tmTargets, ttGrouped)(trx);
+    });
+  }
+
+  private arrangeTradingMtxInTrx(userId: number, isuSrtCd: string, tmTargets: TradingMst[], ttGrouped: TradingTrx[][]) {
+    return async (trx: EntityManager) => {
       for (let index = 0; index < ttGrouped.length; index++) {
         const ttNews = ttGrouped[index];
         const tmNew = this.tmRepo.create({ userId, isuSrtCd, tradingTrxes: ttNews });
@@ -202,6 +298,39 @@ export class TradingService {
         await this.addTradingNTrxesInTrx(tmNew)(trx);
       }
       await this.removeTradingsInTrx(tmTargets)(trx);
+    };
+  }
+
+  private async removeTradingTrxInMst(ttTarget: TradingTrx, tmTarget: TradingMst, ttRemains: TradingTrx[]) {
+    await this.dataSource.transaction(async (trx) => {
+      const ttTrxRepo = trx.getRepository(TradingTrx);
+      await ttTrxRepo.delete({ id: ttTarget.id });
+      TradingMst.calculate(tmTarget, ttRemains);
+      await this.modifyTradingNTrxesInTrx(tmTarget, tmTarget.tradingTrxes)(trx);
+    });
+  }
+
+  private async removeTradingTrxInMstNArrange(
+    ttTarget: TradingTrx,
+    userId: number,
+    isuSrtCd: string,
+    tmTargets: TradingMst[],
+    ttGrouped: TradingTrx[][],
+  ) {
+    await this.dataSource.transaction(async (trx) => {
+      const ttTrxRepo = trx.getRepository(TradingTrx);
+      await ttTrxRepo.delete({ id: ttTarget.id });
+      await this.arrangeTradingMtxInTrx(userId, isuSrtCd, tmTargets, ttGrouped)(trx);
+    });
+  }
+
+  private async removeTradingMst(tmTarget: TradingMst) {
+    await this.dataSource.transaction(async (trx) => {
+      const tmTrxRepo = trx.getRepository(TradingMst);
+      const ttTrxRepo = trx.getRepository(TradingTrx);
+
+      await ttTrxRepo.delete({ tradingId: tmTarget.id });
+      await tmTrxRepo.delete({ id: tmTarget.id });
     });
   }
 

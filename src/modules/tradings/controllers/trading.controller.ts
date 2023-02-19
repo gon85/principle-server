@@ -7,6 +7,9 @@ import {
   Get,
   UseInterceptors,
   ClassSerializerInterceptor,
+  Put,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ErrorResponseDto } from '@src/commons/dto/error-response.dto';
@@ -40,6 +43,46 @@ export class TradingController {
   @UseInterceptors(ClassSerializerInterceptor)
   addTradingTrx(@Request() req, @Body() ttDto: TradingTrxDto) {
     return this.tradingService.addTradingTrx(req.user.userId, ttDto);
+  }
+
+  @Put('')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    description: `
+      매매를 수정 합니다.
+    `,
+  })
+  @ApiCreatedResponse({
+    type: TradingInfoDto,
+    description: '매매 정보',
+  })
+  @ApiBadRequestResponse({
+    type: ErrorResponseDto,
+    description: '오류 객체',
+  })
+  @UseInterceptors(ClassSerializerInterceptor)
+  putTradingTrx(@Request() req, @Body() ttDto: TradingTrxDto) {
+    return this.tradingService.modifyTradingByTrx(req.user.userId, ttDto);
+  }
+
+  @Delete(':isuSrtCd/:ttId')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    description: `
+      매매를 삭제 합니다.
+    `,
+  })
+  @ApiCreatedResponse({
+    type: TradingInfoDto,
+    description: '매매 정보',
+  })
+  @ApiBadRequestResponse({
+    type: ErrorResponseDto,
+    description: '오류 객체',
+  })
+  @UseInterceptors(ClassSerializerInterceptor)
+  delTradingTrx(@Request() req, @Param('isuSrtCd') isuSrtCd: string, @Param('ttId') ttId: number) {
+    return this.tradingService.removeTradingByTrx(req.user.userId, isuSrtCd, ttId);
   }
 
   @Get('')
