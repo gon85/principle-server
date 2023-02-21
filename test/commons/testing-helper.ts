@@ -12,6 +12,10 @@ import User from '@src/modules/user/entities/user.entity';
 import TradingMst from '@src/modules/tradings/entities/trading-mst.entity';
 import TradingTrx from '@src/modules/tradings/entities/trading-trx.entity';
 import { AuthSenarioTest } from './senarios/auth-senarios-test';
+import UserCorpHst from '@src/modules/user/entities/user-corp-hst';
+import UserCorpStats from '@src/modules/user/entities/user-corp-stats.entity';
+import datetimeUtils from '@src/commons/utils/datetime-utils';
+import dayjs from 'dayjs';
 
 let appLola: INestApplication;
 
@@ -69,16 +73,16 @@ const getService = <T>(token: Type<T>) => {
   return appLola.get<T>(token);
 };
 
-// const setNow = (val: string) => {
-//   spyOnTime = jest.spyOn(datetimeUtils, 'getNowMoment').mockImplementation(() => {
-//     return moment(val, 'YYYY-MM-DD HH:mm:ss').clone();
-//   });
-// };
-// const resetNow = () => {
-//   if (spyOnTime) {
-//     spyOnTime.mockRestore();
-//   }
-// };
+const setNow = (val: string) => {
+  spyOnTime = jest.spyOn(datetimeUtils, 'getNowDayjs').mockImplementation(() => {
+    return dayjs(val, 'YYYY-MM-DD HH:mm:ss').clone();
+  });
+};
+const resetNow = () => {
+  if (spyOnTime) {
+    spyOnTime.mockRestore();
+  }
+};
 
 export const testingHelper = {
   getApp,
@@ -86,8 +90,8 @@ export const testingHelper = {
   afterAll,
   beforeEach,
   afterEach,
-  // setNow,
-  // resetNow,
+  setNow,
+  resetNow,
   getRepository,
   getService,
 };
@@ -105,6 +109,8 @@ async function resetTestDataByEmail(email: string) {
   const tIds = tradings.map((t) => t.id);
   await ttRepo.delete({ tradingId: In(tIds) });
   await tmRepo.delete({ id: In(tIds) });
+  await dataSource.getRepository(UserCorpHst).delete({ userId: u.id });
+  await dataSource.getRepository(UserCorpStats).delete({ userId: u.id });
 
   return u;
 }

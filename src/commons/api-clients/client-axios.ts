@@ -40,21 +40,35 @@ class ClientAxios {
    * @deprecated getStockPriceInNaver 대체
    */
   async getStockPriceDailyInKrx(isuCd: string, fromdate: string, todate: string) {
-    const repDaily = await this.krxAxios.post(constUri.krx.stockPriceDaily.uri, constUri.krx.stockPriceDaily.params(isuCd, fromdate, todate));
+    const repDaily = await this.krxAxios.post(
+      constUri.krx.stockPriceDaily.uri,
+      constUri.krx.stockPriceDaily.params(isuCd, fromdate, todate),
+    );
 
     return repDaily.data;
   }
 
   async getStockPriceInNaver(isuCd: string, fromdate: string, todate: string, timeframe: 'week' | 'day' = 'week') {
-    const rep = await this.naverAxios.post(constUri.naver.stockPrice.uri, constUri.naver.stockPrice.params(isuCd, fromdate, todate, timeframe));
+    const rep = await this.naverAxios.post(
+      constUri.naver.stockPrice.uri,
+      constUri.naver.stockPrice.params(isuCd, fromdate, todate, timeframe),
+    );
 
     // eslint-disable-next-line no-useless-escape
     const replaceJsonString = rep.data.replace(/\'/g, '"');
-    return JSON.parse(replaceJsonString);
+    // end date 포함 안되도록 처리 (end date 포함여부 확인 필요)
+    const array = JSON.parse(replaceJsonString);
+    if (array[array.length - 1][0] === todate) {
+      array.pop();
+    }
+    return array;
   }
 
   async getStockPriceWeekly(isuCd: string, fromdate: string, todate: string) {
-    const repWeekly = await this.naverAxios.post(constUri.naver.stockPrice.uri, constUri.naver.stockPrice.params(isuCd, fromdate, todate));
+    const repWeekly = await this.naverAxios.post(
+      constUri.naver.stockPrice.uri,
+      constUri.naver.stockPrice.params(isuCd, fromdate, todate),
+    );
 
     // eslint-disable-next-line no-useless-escape
     const replaceJsonString = repWeekly.data.replace(/\'/g, '"');

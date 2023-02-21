@@ -11,6 +11,9 @@ const datetimeUtils = {
   getNowDayjs() {
     return dayjs().clone();
   },
+  getTodayDayjs() {
+    return datetimeUtils.getDayjs(datetimeUtils.getNowDayjs().format('YYYY-MM-DD'), 'YYYY-MM-DD');
+  },
   getNowString(format = DATETIME_FORMAT) {
     return datetimeUtils.getNowDayjs().format(format);
   },
@@ -24,6 +27,14 @@ const datetimeUtils = {
   dateToUtc(date: Date) {
     return dayjs(date).utc().toDate();
   },
+  isHoliday(target: dayjs.Dayjs) {
+    const dayOfWeek = target.day();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return true;
+    }
+    return false;
+  },
+
   // getTodayMoment() {
   //   return moment(datetimeUtils.getNowMoment().format('YYYY-MM-DD'), 'YYYY-MM-DD');
   // },
