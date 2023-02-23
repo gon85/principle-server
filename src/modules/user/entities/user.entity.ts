@@ -1,5 +1,16 @@
+import UserAlarm from '@src/modules/creterions/entities/user_alarm.entity';
+import UserCreterion from '@src/modules/creterions/entities/user_creterion.entity';
 import { IsEmail, IsOptional, IsString } from 'class-validator';
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 const uDesc = {
   id: 'user key',
@@ -89,4 +100,10 @@ export default class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToOne(() => UserCreterion, (uc) => uc.user)
+  creterion?: UserCreterion;
+
+  @OneToMany(() => UserAlarm, (ua) => ua.user)
+  alarms?: UserAlarm[];
 }

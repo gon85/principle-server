@@ -16,6 +16,8 @@ import UserCorpHst from '@src/modules/user/entities/user-corp-hst';
 import UserCorpStats from '@src/modules/user/entities/user-corp-stats.entity';
 import datetimeUtils from '@src/commons/utils/datetime-utils';
 import dayjs from 'dayjs';
+import UserCreterion from '@src/modules/creterions/entities/user_creterion.entity';
+import UserAlarm from '@src/modules/creterions/entities/user_alarm.entity';
 
 let appLola: INestApplication;
 
@@ -111,6 +113,8 @@ async function resetTestDataByEmail(email: string) {
   await tmRepo.delete({ id: In(tIds) });
   await dataSource.getRepository(UserCorpHst).delete({ userId: u.id });
   await dataSource.getRepository(UserCorpStats).delete({ userId: u.id });
+  await dataSource.getRepository(UserCreterion).delete({ userId: u.id });
+  await dataSource.getRepository(UserAlarm).delete({ userId: u.id });
 
   return u;
 }

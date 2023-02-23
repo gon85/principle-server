@@ -9,6 +9,7 @@ import { CorparationModule } from './modules/corparation/corparation.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TradingModule } from './modules/tradings/trading.module';
 import { StocksModule } from './modules/stocks/stocks.module';
+import { CreterionsModule } from './modules/creterions/creterions.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { StocksModule } from './modules/stocks/stocks.module';
     AuthModule,
     StocksModule,
     TradingModule,
+    CreterionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

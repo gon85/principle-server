@@ -123,7 +123,6 @@ export class StockService {
 
   private async addStockDailyPriceBy(isuSrtCd: string, repJsonArray: any) {
     const sdpSaveds = repJsonArray.map((rj) => this.convertJsonToStockPrice(isuSrtCd, rj)) as StockDailyPrice[];
-    sdpSaveds.splice(0, 1);
     await this.sdpRepo.save(sdpSaveds);
     return sdpSaveds;
 
