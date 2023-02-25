@@ -10,6 +10,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { TradingModule } from './modules/tradings/trading.module';
 import { StocksModule } from './modules/stocks/stocks.module';
 import { CreterionsModule } from './modules/creterions/creterions.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { LoggingInterceptor } from './commons/Interceptors/logging-Interceptor';
 
 @Module({
   imports: [
@@ -29,6 +31,12 @@ import { CreterionsModule } from './modules/creterions/creterions.module';
     CreterionsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+  ],
 })
 export class AppModule {}
