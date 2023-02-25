@@ -26,6 +26,10 @@ export class CorparationService {
     await this.addCorporationCode(etfCodes);
   }
 
+  public async getCorps() {
+    return this.corRepo.find();
+  }
+
   private getDefaultCorps() {
     const kospi = this.corRepo.create({
       isuSrtCd: 'KOSPI',
