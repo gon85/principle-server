@@ -216,10 +216,11 @@ export class TradingService {
 
       const ir = await tTrxRepo.insert(tmTarget);
       tmTarget.id = ir.generatedMaps[0].id;
-      tmTarget.tradingTrxes?.map((tt) => {
+      const tradingTrxes = tmTarget.tradingTrxes?.map((tt) => {
         tt.tradingId = tmTarget.id;
+        return omit(tt, ['createdAt', 'updatedAt']);
       });
-      await ttTrxRepo.upsert(tmTarget.tradingTrxes, ['id']);
+      await ttTrxRepo.upsert(tradingTrxes, ['id']);
     };
   }
 
@@ -262,10 +263,11 @@ export class TradingService {
       const tModify = omit(tm, ['id', 'createdAt', 'updatedAt', 'tradingTrxes']);
       await tmTrxRepo.update(tm.id, tModify);
 
-      tts.map((tt) => {
+      const ttTargets = tts.map((tt) => {
         tt.tradingId = tm.id;
+        return omit(tt, ['createdAt']);
       });
-      await ttTrxRepo.upsert(tts, ['id']);
+      await ttTrxRepo.upsert(ttTargets, ['id']);
     };
   }
 

@@ -66,18 +66,12 @@ export default class TradingTrx {
   @CreateDateColumn({
     type: 'datetime',
     comment: ttDesc.createdAt,
-    // transformer: {
-    //   to(data: Date): Date {
-    //     return data;
-    //   },
-    //   from(data: Date): Date {
-    //     return datetimeUtils.getDayjs(data).utc().toDate();
-    //   },
-    // },
   })
   @Transform(({ value }) => {
+    if (value == null) return null;
     return datetimeUtils.getDayjs(value).format();
   })
+  @IsOptional()
   createdAt!: Date;
 
   // @BeforeInsert()
