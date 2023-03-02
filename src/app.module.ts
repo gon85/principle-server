@@ -12,6 +12,7 @@ import { StocksModule } from './modules/stocks/stocks.module';
 import { CreterionsModule } from './modules/creterions/creterions.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './commons/Interceptors/logging-Interceptor';
+import { AnalysisModule } from './modules/analysis/analysis.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { LoggingInterceptor } from './commons/Interceptors/logging-Interceptor';
     StocksModule,
     TradingModule,
     CreterionsModule,
+    AnalysisModule,
   ],
   controllers: [AppController],
   providers: [

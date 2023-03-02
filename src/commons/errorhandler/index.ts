@@ -8,6 +8,7 @@ interface ErrorCode {
 export const ErrorCodes = {
   NOT_FOUND: { code: 'common-0001', message: '정보를 찾을 수 없습니다.' },
   NOT_FOUND_USER: { code: 'user-0001', message: '이용자 정보를 찾을 수 없습니다.' },
+  NOT_FOUND_TRADING: { code: 'trading-0001', message: '매매내역을 찾을 수 없습니다.' },
 } as const;
 // export type ErrorCodes = keyof typeof ErrorInfos;
 
