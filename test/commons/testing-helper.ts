@@ -18,6 +18,8 @@ import datetimeUtils from '@src/commons/utils/datetime-utils';
 import dayjs from 'dayjs';
 import UserCreterion from '@src/modules/creterions/entities/user_creterion.entity';
 import UserAlarm from '@src/modules/creterions/entities/user_alarm.entity';
+import UserCreterionDto from '@src/modules/creterions/dto/user-creterion.dto';
+import { CreterionSenario } from './senarios/creterion-senarios';
 
 let appLola: INestApplication;
 
@@ -98,11 +100,12 @@ export const testingHelper = {
   getService,
 };
 
-async function resetTestDataByEmail(email: string) {
+async function resetTestDataByEmail(email: string, resetData = true) {
   const dataSource = getApp().get<DataSource>(DataSource);
 
   const u = await dataSource.getRepository(User).findOne({ where: { email } });
   if (!u) return null;
+  if (resetData === false) return u;
 
   const tmRepo = dataSource.getRepository(TradingMst);
   const ttRepo = dataSource.getRepository(TradingTrx);
@@ -119,19 +122,30 @@ async function resetTestDataByEmail(email: string) {
   return u;
 }
 
-export async function getUserTester(emailId: string, pw = '01!!xfortesting', options = { resetData: true }) {
+interface Options {
+  pw?: string;
+  resetData?: boolean;
+  ucd?: UserCreterionDto;
+}
+
+export async function getUserTester(emailId: string, options: Options = { resetData: true, pw: '01!!xfortesting' }) {
   const client = request(appLola.getHttpServer());
   const user = new UserTester(client);
   const email = `${emailId}@e2e.com`;
 
-  const { resetData = true } = options;
-  const dbUser = await resetTestDataByEmail(email);
+  const { resetData, pw } = { resetData: true, pw: '01!!xfortesting', ...options };
+  const dbUser = await resetTestDataByEmail(email, resetData);
   if (!dbUser) {
     const ast = new AuthSenarioTest(appLola);
     await ast.addUser(email, pw);
   }
-
   await user.login(email, pw);
+
+  if (options.ucd) {
+    const cs = new CreterionSenario(user);
+    cs.addCreterion(options.ucd);
+  }
+
   return user;
 }
 
