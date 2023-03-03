@@ -11,5 +11,6 @@ import { StockService } from './services/stock.service';
   imports: [TypeOrmModule.forFeature([StockDailyPrice, Corparation, UserCorpHst, UserCorpStats])],
   controllers: [StockController],
   providers: [StockService],
+  exports: [StockService],
 })
 export class StocksModule {}

@@ -31,6 +31,24 @@ export class StockService {
     toDate?: string,
     userId?: number,
   ) {
+    const sdt = await this.getStockDailyPrices(isuSrtCd, isuCd, fromDate, toDate, userId);
+
+    const company = await this.cRepo.findOne({ where: { isuSrtCd } });
+    const ucs = await this.ucsRepo.findOne({ where: { isuSrtCd, userId } });
+    return {
+      corparation: company,
+      userCorpStats: ucs,
+      stockDailyPrices: sdt,
+    } as StockPriceInfoDto;
+  }
+
+  public async getStockDailyPrices(
+    isuSrtCd: string,
+    isuCd: string,
+    fromDate?: string,
+    toDate?: string,
+    userId?: number,
+  ) {
     const fromDayjs = fromDate
       ? datetimeUtils.getDayjs(fromDate, 'YYYYMMDD')
       : datetimeUtils.getTodayDayjs().add(-1, 'months');
@@ -73,13 +91,7 @@ export class StockService {
       await this.addUserStockLog(isuSrtCd, sdt[sdt.length - 1].clpr, userId);
     }
 
-    const company = await this.cRepo.findOne({ where: { isuSrtCd } });
-    const ucs = await this.ucsRepo.findOne({ where: { isuSrtCd, userId } });
-    return {
-      corparation: company,
-      userCorpStats: ucs,
-      stockDailyPrices: sdt,
-    } as StockPriceInfoDto;
+    return sdt;
   }
 
   private async getStockDailyPriceInDB(isuSrtCd: string, isuCd: string, fromDayjs: Dayjs, toDayjs: Dayjs) {

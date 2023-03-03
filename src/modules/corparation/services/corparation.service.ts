@@ -49,7 +49,16 @@ export class CorparationService {
       isuNmDisassemble: hangul.disassembleToString('코스닥 (KOSDAQ)'),
       corpCode: '',
     });
-    return [kospi, kosdaq];
+    const kospiT = this.corRepo.create({
+      isuSrtCd: 'KOSPIT',
+      isuCd: 'KOSPIT',
+      isuAbbrv: '코스피 (KOSPIT)',
+      kindStkcertTpNm: '',
+      isuNm: 'KOSPIT',
+      isuNmDisassemble: hangul.disassembleToString('코스피T (KOSPIT)'),
+      corpCode: '',
+    });
+    return [kospi, kosdaq, kospiT];
   }
 
   private async addCorporationCode(stockCodes: any[], kindStkcertTpNm = 'ETF') {

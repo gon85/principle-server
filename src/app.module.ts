@@ -13,6 +13,7 @@ import { CreterionsModule } from './modules/creterions/creterions.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './commons/Interceptors/logging-Interceptor';
 import { AnalysisModule } from './modules/analysis/analysis.module';
+import { DataaccessModule } from './dataaccess/dataaccess.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AnalysisModule } from './modules/analysis/analysis.module';
       useClass: MySqlConfigService,
       inject: [MySqlConfigService],
     }),
+    DataaccessModule,
     CorparationModule,
     AuthModule,
     StocksModule,
