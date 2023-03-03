@@ -8,10 +8,15 @@ import TradingTrx from './trading-trx.entity';
 const tDesc = {
   id: '',
   isuSrtCd: 'KRX 종목코드(short)',
-  avgBuyPrice: '매수금 평균가',
-  sumBuyCnt: '매수금합계',
-  avgSellPrice: '매도 평균가',
-  sumSellCnt: '매도금합계',
+
+  buyPriceSum: '매수금 합계',
+  buyCntSum: '매수량 합계',
+  buyPriceAvg: '매수금 평균가',
+
+  sellPriceSum: '매도금 합계',
+  sellCntSum: '매도량 합계',
+  sellPriceAvg: '매도 평균가',
+
   remainCount: '남은 수량 (음수 가능)',
   startedAt: '최초 거래일 (최초 매수일)',
   finishedAt: '최종 거래일 (최종 매도일)',
@@ -30,12 +35,18 @@ export default class TradingMst {
   @Column({ type: 'varchar', length: 12, comment: tDesc.isuSrtCd })
   isuSrtCd!: string;
 
+  @Column({ type: 'int', default: 0, comment: tDesc.buyPriceSum })
+  buyPriceSum!: number;
+
+  @Column({ type: 'int', default: 0, comment: tDesc.buyCntSum })
+  buyCntSum!: number;
+
   @Column({
     type: 'decimal',
     precision: 12,
     scale: 2,
     default: 0,
-    comment: tDesc.avgBuyPrice,
+    comment: tDesc.buyPriceAvg,
     transformer: {
       to(data: number): number {
         return data;
@@ -45,17 +56,20 @@ export default class TradingMst {
       },
     },
   })
-  avgBuyPrice!: number;
+  buyPriceAvg!: number;
 
-  @Column({ type: 'int', default: 0, comment: tDesc.sumBuyCnt })
-  sumBuyCnt!: number;
+  @Column({ type: 'int', default: 0, comment: tDesc.sellPriceSum })
+  sellPriceSum!: number;
+
+  @Column({ type: 'int', default: 0, comment: tDesc.sellCntSum })
+  sellCntSum!: number;
 
   @Column({
     type: 'decimal',
     precision: 12,
     scale: 2,
     default: 0,
-    comment: tDesc.avgSellPrice,
+    comment: tDesc.sellPriceAvg,
     transformer: {
       to(data: number): number {
         return data;
@@ -65,10 +79,7 @@ export default class TradingMst {
       },
     },
   })
-  avgSellPrice!: number;
-
-  @Column({ type: 'int', default: 0, comment: tDesc.sumSellCnt })
-  sumSellCnt!: number;
+  sellPriceAvg!: number;
 
   @Column({ type: 'int', default: 0, comment: tDesc.remainCount })
   remainCount!: number;
@@ -124,10 +135,10 @@ export default class TradingMst {
     if (tTarget.remainCount === 0) {
       tTarget.finishedAt = ttTargets[ttTargets.length - 1].tradingAt;
     }
-    tTarget.avgBuyPrice = resultCal.sumBuyCnt === 0 ? 0 : Math.floor(resultCal.sumBuyPrice / resultCal.sumBuyCnt);
-    tTarget.sumBuyCnt = resultCal.sumBuyCnt;
-    tTarget.avgSellPrice = resultCal.sumSellCnt === 0 ? 0 : Math.floor(resultCal.sumSellPrice / resultCal.sumSellCnt);
-    tTarget.sumSellCnt = resultCal.sumSellCnt;
+    tTarget.buyPriceAvg = resultCal.sumBuyCnt === 0 ? 0 : Math.floor(resultCal.sumBuyPrice / resultCal.sumBuyCnt);
+    tTarget.buyCntSum = resultCal.sumBuyCnt;
+    tTarget.sellPriceAvg = resultCal.sumSellCnt === 0 ? 0 : Math.floor(resultCal.sumSellPrice / resultCal.sumSellCnt);
+    tTarget.sellCntSum = resultCal.sumSellCnt;
     return tTarget;
   }
 }

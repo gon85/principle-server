@@ -54,8 +54,8 @@ describe('Test trading e2e ', () => {
       expect(datetimeUtils.getDayjs(tm.finishedAt).format(DATETIME_FORMAT)).toEqual(
         datetimeUtils.getDayjs(fDt).format(DATETIME_FORMAT),
       );
-      expect(tm.avgBuyPrice).toEqual(abp);
-      expect(tm.avgSellPrice).toEqual(asp);
+      expect(tm.buyPriceAvg).toEqual(abp);
+      expect(tm.sellPriceAvg).toEqual(asp);
       expect(tm.remainCount).toEqual(rc);
       expect(tm.tradingTrxes.length).toEqual(ttLength);
     },

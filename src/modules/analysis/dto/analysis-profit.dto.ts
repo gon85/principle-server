@@ -69,7 +69,7 @@ export class AnalysisProfitDto {
     tmTarget: TradingMst,
     isExceedPeroid: boolean,
   ) {
-    const profit = ((currentPrice - tmTarget.avgBuyPrice) * 100) / tmTarget.avgBuyPrice;
+    const profit = ((currentPrice - tmTarget.buyPriceAvg) * 100) / tmTarget.buyPriceAvg;
     const sentences =
       profit >= 0
         ? AnalysisProfitDto.createProfitSentencesBy(targetProfitRatio, profit, isExceedPeroid)
@@ -80,11 +80,11 @@ export class AnalysisProfitDto {
       maxLossRatio,
       currentPrice,
       sumBuyPrice: 0,
-      sumBuyCnt: tmTarget.sumBuyCnt || 0,
-      avgBuyPrice: tmTarget.avgBuyPrice || 0,
+      sumBuyCnt: tmTarget.buyCntSum || 0,
+      avgBuyPrice: tmTarget.buyPriceAvg || 0,
       sumSellPrice: 0,
-      sumSellCnt: tmTarget.sumSellCnt || 0,
-      avgSellPrice: tmTarget.avgSellPrice || 0,
+      sumSellCnt: tmTarget.sellCntSum || 0,
+      avgSellPrice: tmTarget.sellPriceAvg || 0,
       remainCount: tmTarget.remainCount || 0,
       profit,
       sentences,
