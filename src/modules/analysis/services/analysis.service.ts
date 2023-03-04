@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { AnalysisResultDto } from '../dto/analysis-corp-stock.dto';
 import { AnalysisPeriodDto } from '../dto/analysis-period.dto';
 import { AnalysisProfitDto } from '../dto/analysis-profit.dto';
+import { AnalysisItemTypes } from '../types/enums';
 
 export class AnalysisService {
   constructor(
@@ -35,6 +36,20 @@ export class AnalysisService {
     result.profit = await this.forProfit(corp, tmTarget, userInfo.creterion, result.period.exceedDate > 0);
 
     return result;
+  }
+
+  public async analyseItemCorpStock(userId: number, isuSrtCd: string, itemType: AnalysisItemTypes, tmId?: number) {
+    const userInfo = await this.getUserInfo(userId);
+    const tmTarget = await this.getTradingByIsuCrt(userId, isuSrtCd, tmId);
+    const corp = await this.corpDao.findCorp(isuSrtCd);
+
+    switch (itemType) {
+      case AnalysisItemTypes.Period:
+        return this.forPeriod(tmTarget, userInfo.creterion);
+      case AnalysisItemTypes.Profit:
+        const period = this.forPeriod(tmTarget, userInfo.creterion);
+        return this.forProfit(corp, tmTarget, userInfo.creterion, period.exceedDate > 0);
+    }
   }
 
   private forPeriod(tmTarget: TradingMst, uc: UserCreterion) {
@@ -108,6 +123,8 @@ export class AnalysisService {
     const from = datetimeUtils.getNowDayjs().add(-1, 'd').format('YYYYMMDD');
     const to = datetimeUtils.getNowDayjs().format('YYYYMMDD');
     const sdts = await this.stockService.getStockDailyPrices(isuSrtCd, isuCd, from, to);
+
+    ErrorHandler.checkThrow(sdts.length <= 0, ErrorCodes.NOT_FOUND_STOCK);
     return sdts[0];
   }
 }

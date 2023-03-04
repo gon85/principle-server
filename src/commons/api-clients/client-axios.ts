@@ -59,7 +59,7 @@ class ClientAxios {
     // end date 포함 안되도록 처리 (end date 포함여부 확인 필요)
     const array = JSON.parse(replaceJsonString);
     array.splice(0, 1);
-    if (array[array.length - 1][0] === todate) {
+    if (array.length > 0 && array[array.length - 1][0] === todate) {
       array.pop();
     }
     return array;
