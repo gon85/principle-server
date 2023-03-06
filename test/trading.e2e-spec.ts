@@ -2,7 +2,8 @@ import { HttpStatus } from '@nestjs/common';
 import datetimeUtils, { DATETIME_FORMAT } from '@src/commons/utils/datetime-utils';
 import reducePromises from '@src/commons/utils/reduce-promise';
 import { CorparationService } from '@src/modules/corparation/services/corparation.service';
-import { TradingInfoDto } from '@src/modules/tradings/dto/trading-info.dto';
+import StockDailyPrice from '@src/modules/stocks/entities/stock_daily_price.entity';
+import { TradingListDto } from '@src/modules/tradings/dto/trading-list.dto';
 import { TradingTrxDto } from '@src/modules/tradings/dto/trading-trx.dto';
 import TradingMst from '@src/modules/tradings/entities/trading-mst.entity';
 import { getUserTester, testingHelper } from './commons/testing-helper';
@@ -15,18 +16,44 @@ describe('Test trading e2e ', () => {
   });
 
   const testDataHelper = {
+    fakeStockDailyPriceData(isuSrtCd: string) {
+      const sdps = [
+        { isuSrtCd, baseDt: '20221102', mkp: 900, hipr: 1100, lopr: 900, clpr: 950, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221103', mkp: 900, hipr: 1100, lopr: 900, clpr: 960, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221104', mkp: 900, hipr: 1100, lopr: 900, clpr: 970, trqu: 1000 } as StockDailyPrice,
+
+        { isuSrtCd, baseDt: '20221107', mkp: 900, hipr: 1100, lopr: 900, clpr: 910, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221108', mkp: 900, hipr: 1100, lopr: 900, clpr: 920, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221109', mkp: 900, hipr: 1100, lopr: 900, clpr: 990, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221110', mkp: 900, hipr: 1150, lopr: 900, clpr: 1500, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221111', mkp: 900, hipr: 1100, lopr: 900, clpr: 2000, trqu: 1000 } as StockDailyPrice,
+
+        { isuSrtCd, baseDt: '20221114', mkp: 900, hipr: 1100, lopr: 900, clpr: 2100, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221115', mkp: 900, hipr: 1100, lopr: 900, clpr: 2200, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221116', mkp: 900, hipr: 1100, lopr: 900, clpr: 2500, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221117', mkp: 900, hipr: 1100, lopr: 900, clpr: 2300, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221118', mkp: 900, hipr: 1100, lopr: 900, clpr: 2400, trqu: 1000 } as StockDailyPrice,
+
+        { isuSrtCd, baseDt: '20221121', mkp: 900, hipr: 1100, lopr: 900, clpr: 2200, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221122', mkp: 900, hipr: 1100, lopr: 900, clpr: 1900, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221123', mkp: 900, hipr: 1100, lopr: 900, clpr: 1800, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221124', mkp: 900, hipr: 1100, lopr: 900, clpr: 1850, trqu: 1000 } as StockDailyPrice,
+        { isuSrtCd, baseDt: '20221125', mkp: 900, hipr: 1100, lopr: 900, clpr: 1500, trqu: 1000 } as StockDailyPrice,
+      ];
+      return sdps;
+    },
     fakeTradingInputData(isuSrtCd: string): TradingTrxDto[] {
       const ts = [
-        { isuSrtCd, tradingDate: '2020-11-02', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 1000, cnt: 10 }, // 0
-        { isuSrtCd, tradingDate: '2020-11-03', tradingTime: '13:01:01', tradingTypeCd: 'S', price: 1000, cnt: 10 }, // 1 거래완료
-        { isuSrtCd, tradingDate: '2020-11-04', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 1000, cnt: 10 }, // 2
-        { isuSrtCd, tradingDate: '2020-11-05', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 1000, cnt: 10 }, // 3
-        { isuSrtCd, tradingDate: '2020-11-06', tradingTime: '13:01:01', tradingTypeCd: 'S', price: 1000, cnt: 20 }, // 4 거래완료
-        { isuSrtCd, tradingDate: '2020-11-09', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 1000, cnt: 10 }, // 5
-        { isuSrtCd, tradingDate: '2020-11-11', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 2000, cnt: 10 }, // 6
-        { isuSrtCd, tradingDate: '2020-11-16', tradingTime: '13:01:01', tradingTypeCd: 'S', price: 2000, cnt: 20 }, // 7 거래완료
-        { isuSrtCd, tradingDate: '2020-11-23', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 1000, cnt: 10 }, // 8
-        { isuSrtCd, tradingDate: '2020-11-25', tradingTime: '13:01:01', tradingTypeCd: 'S', price: 1000, cnt: 10 }, // 9 거래완료
+        { isuSrtCd, tradingDate: '2022-11-02', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 1000, cnt: 10 }, // 0
+        { isuSrtCd, tradingDate: '2022-11-03', tradingTime: '13:01:01', tradingTypeCd: 'S', price: 1000, cnt: 10 }, // 1 거래완료
+        { isuSrtCd, tradingDate: '2022-11-04', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 1000, cnt: 10 }, // 2
+        { isuSrtCd, tradingDate: '2022-11-05', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 1000, cnt: 10 }, // 3
+        { isuSrtCd, tradingDate: '2022-11-06', tradingTime: '13:01:01', tradingTypeCd: 'S', price: 1000, cnt: 20 }, // 4 거래완료
+        { isuSrtCd, tradingDate: '2022-11-09', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 1000, cnt: 10 }, // 5
+        { isuSrtCd, tradingDate: '2022-11-11', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 2000, cnt: 10 }, // 6
+        { isuSrtCd, tradingDate: '2022-11-16', tradingTime: '13:01:01', tradingTypeCd: 'S', price: 2000, cnt: 20 }, // 7 거래완료
+        { isuSrtCd, tradingDate: '2022-11-23', tradingTime: '13:01:01', tradingTypeCd: 'B', price: 1000, cnt: 10 }, // 8
+        { isuSrtCd, tradingDate: '2022-11-25', tradingTime: '13:01:01', tradingTypeCd: 'S', price: 1000, cnt: 10 }, // 9 거래완료
       ];
 
       return ts.map(
@@ -60,7 +87,7 @@ describe('Test trading e2e ', () => {
       expect(tm.tradingTrxes.length).toEqual(ttLength);
     },
 
-    expectLast(tiResult: TradingInfoDto, isuSrtCdTarget: string) {
+    expectLast(tiResult: TradingListDto, isuSrtCdTarget: string) {
       const fakeTradingData = testDataHelper.fakeTradingInputData(isuSrtCdTarget);
       // 시간 순으로 정렬되고, 매수-매도 묶음 단위로 처리되었나?
       expect(4).toEqual(tiResult.list.length);
@@ -95,7 +122,7 @@ describe('Test trading e2e ', () => {
     rep.status !== HttpStatus.CREATED ? console.log('---->', rep.error) : '';
     expect(rep.status).toEqual(HttpStatus.CREATED);
 
-    const tiResult = rep.body as TradingInfoDto;
+    const tiResult = rep.body as TradingListDto;
     const t = tiResult.list[0];
     const djs = datetimeUtils.getDayjs(t.tradingTrxes[0].createdAt);
     console.log(t.tradingTrxes[0].createdAt);
@@ -132,7 +159,7 @@ describe('Test trading e2e ', () => {
       });
       const repTrading = await userTester.get('/api/tradings');
       expect(repTrading.status).toEqual(HttpStatus.OK);
-      const tiResult = repTrading.body as TradingInfoDto;
+      const tiResult = repTrading.body as TradingListDto;
 
       // 시간 순으로 정렬되고, 매수-매도 묶음 단위로 처리되었나?
       expect(4).toEqual(tiResult.list.length);
@@ -169,7 +196,7 @@ describe('Test trading e2e ', () => {
         const rep = await userTester.post('/api/tradings', ttd);
         rep.status !== HttpStatus.CREATED ? console.log('---->', rep.error) : '';
         expect(rep.status).toEqual(HttpStatus.CREATED);
-        return rep.body as TradingInfoDto;
+        return rep.body as TradingListDto;
       });
       const tiResult = results[results.length - 1];
       expect(tiResult.list.length).toEqual(2);
@@ -184,7 +211,7 @@ describe('Test trading e2e ', () => {
       const rep1 = await userTester.post('/api/tradings', ttd1);
       rep1.status !== HttpStatus.CREATED ? console.log('---->', rep1.error) : '';
       expect(rep1.status).toEqual(HttpStatus.CREATED);
-      const tiResultAdd1 = rep1.body as TradingInfoDto;
+      const tiResultAdd1 = rep1.body as TradingListDto;
       expect(tiResultAdd1.list.length).toEqual(3);
       /* eslint-disable */
       testDataHelper.expectTrading(tiResultAdd1.list[2], fakeTradingData[0].tradingAt, fakeTradingData[1].tradingAt, 1000, 1000, 0, 2);
@@ -198,7 +225,7 @@ describe('Test trading e2e ', () => {
       const rep7 = await userTester.post('/api/tradings', ttd7);
       rep7.status !== HttpStatus.CREATED ? console.log('---->', rep7.error) : '';
       expect(rep7.status).toEqual(HttpStatus.CREATED);
-      const tiResultAdd7 = rep7.body as TradingInfoDto;
+      const tiResultAdd7 = rep7.body as TradingListDto;
       expect(tiResultAdd7.list.length).toEqual(4);
       /* eslint-disable */
       testDataHelper.expectTrading(tiResultAdd7.list[3], fakeTradingData[0].tradingAt, fakeTradingData[1].tradingAt, 1000, 1000, 0, 2);
@@ -210,7 +237,7 @@ describe('Test trading e2e ', () => {
       await userTester.post('/api/tradings', fakeTradingData[3]);
       const repFinished = await userTester.post('/api/tradings', fakeTradingData[6]);
       expect(repFinished.status).toEqual(HttpStatus.CREATED);
-      const tiFinished = repFinished.body as TradingInfoDto;
+      const tiFinished = repFinished.body as TradingListDto;
 
       // 시간 순으로 정렬되고, 매수-매도 묶음 단위로 처리되었나?
       expect(4).toEqual(tiFinished.list.length);
@@ -244,13 +271,13 @@ describe('Test trading e2e ', () => {
       const rep1 = await userTester.post('/api/tradings', fakeData[1]);
       rep1.status !== HttpStatus.CREATED ? console.log('---->', rep1.error) : '';
       expect(rep1.status).toEqual(HttpStatus.CREATED);
-      const tid1 = rep1.body as TradingInfoDto;
+      const tid1 = rep1.body as TradingListDto;
       testDataHelper.expectTrading(tid1.list[0], fakeData[1].tradingAt, null, 0, 1000, -10, 1);
 
       const rep2 = await userTester.post('/api/tradings', fakeData[2]);
       rep2.status !== HttpStatus.CREATED ? console.log('---->', rep2.error) : '';
       expect(rep2.status).toEqual(HttpStatus.CREATED);
-      const tid2 = rep2.body as TradingInfoDto;
+      const tid2 = rep2.body as TradingListDto;
       expect(2).toEqual(tid2.list.length);
       testDataHelper.expectTrading(tid2.list[0], fakeData[2].tradingAt, null, 1000, 0, 10, 1);
       testDataHelper.expectTrading(tid2.list[1], fakeData[1].tradingAt, null, 0, 1000, -10, 1);
@@ -264,7 +291,7 @@ describe('Test trading e2e ', () => {
       await userTester.post('/api/tradings', fakeData[9]);
 
       const repLast = await userTester.post('/api/tradings', fakeData[0]);
-      const tidLast = repLast.body as TradingInfoDto;
+      const tidLast = repLast.body as TradingListDto;
       testDataHelper.expectLast(tidLast, isuSrtCdTarget);
     });
 
@@ -301,7 +328,7 @@ describe('Test trading e2e ', () => {
         const rep = await userTester.post('/api/tradings', ttd);
         rep.status !== HttpStatus.CREATED ? console.log('---->', rep.error) : '';
         expect(rep.status).toEqual(HttpStatus.CREATED);
-        return rep.body as TradingInfoDto;
+        return rep.body as TradingListDto;
       });
 
       testDataHelper.expectLast(tids[tids.length - 1], isuSrtCdTarget);
@@ -325,7 +352,7 @@ describe('Test trading e2e ', () => {
       });
       const repTrading = await userTester.get('/api/tradings');
       expect(repTrading.status).toEqual(HttpStatus.OK);
-      const tidTarget = repTrading.body as TradingInfoDto;
+      const tidTarget = repTrading.body as TradingListDto;
 
       return {
         userTester,
@@ -342,7 +369,7 @@ describe('Test trading e2e ', () => {
     const repModify = await userTester.put('/api/tradings', ttdTarget);
     repModify.status !== HttpStatus.OK ? console.log('---->', repModify.error) : '';
     expect(repModify.status).toEqual(HttpStatus.OK);
-    const tidModify = repModify.body as TradingInfoDto;
+    const tidModify = repModify.body as TradingListDto;
     expect(1).toEqual(tidModify.list.length);
     expect(tidModify.list[0].remainCount).toEqual(5);
 
@@ -352,7 +379,7 @@ describe('Test trading e2e ', () => {
     const repModify2 = await userTester.put('/api/tradings', ttdTarget2);
     repModify2.status !== HttpStatus.OK ? console.log('---->', repModify2.error) : '';
     expect(repModify2.status).toEqual(HttpStatus.OK);
-    const tidModify2 = repModify2.body as TradingInfoDto;
+    const tidModify2 = repModify2.body as TradingListDto;
     expect(2).toEqual(tidModify2.list.length);
   });
 
@@ -373,7 +400,7 @@ describe('Test trading e2e ', () => {
       });
       const repTrading = await userTester.get('/api/tradings');
       expect(repTrading.status).toEqual(HttpStatus.OK);
-      const tidTarget = repTrading.body as TradingInfoDto;
+      const tidTarget = repTrading.body as TradingListDto;
 
       return {
         userTester,
@@ -389,7 +416,7 @@ describe('Test trading e2e ', () => {
     const repDel = await userTester.delete(`/api/tradings/${ttdTarget.isuSrtCd}/${ttdTarget.id}`);
     repDel.status !== HttpStatus.OK ? console.log('---->', repDel.error) : '';
     expect(repDel.status).toEqual(HttpStatus.OK);
-    const tidRemove = repDel.body as TradingInfoDto;
+    const tidRemove = repDel.body as TradingListDto;
     expect(2).toEqual(tidRemove.list.length);
     expect(tidRemove.list[0].remainCount).toEqual(20);
   });
