@@ -11,10 +11,17 @@ import {
   Delete,
   Param,
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ErrorResponseDto } from '@src/commons/dto/error-response.dto';
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';
-import { TradingInfoDto } from '../dto/trading-info.dto';
+import { TradingListDto } from '../dto/trading-list.dto';
 import { TradingTrxDto } from '../dto/trading-trx.dto';
 import { TradingService } from '../services/trading.service';
 // import { UserGuard } from '@src/modules/users/guard/user.guard';
@@ -33,7 +40,7 @@ export class TradingController {
     `,
   })
   @ApiCreatedResponse({
-    type: TradingInfoDto,
+    type: TradingListDto,
     description: '매매 정보',
   })
   @ApiBadRequestResponse({
@@ -53,7 +60,7 @@ export class TradingController {
     `,
   })
   @ApiCreatedResponse({
-    type: TradingInfoDto,
+    type: TradingListDto,
     description: '매매 정보',
   })
   @ApiBadRequestResponse({
@@ -73,7 +80,7 @@ export class TradingController {
     `,
   })
   @ApiCreatedResponse({
-    type: TradingInfoDto,
+    type: TradingListDto,
     description: '매매 정보',
   })
   @ApiBadRequestResponse({
@@ -92,8 +99,8 @@ export class TradingController {
       매매를 조회 합니다.
     `,
   })
-  @ApiCreatedResponse({
-    type: TradingInfoDto,
+  @ApiOkResponse({
+    type: TradingListDto,
     description: '매매 정보',
   })
   getTradings(@Request() req) {
