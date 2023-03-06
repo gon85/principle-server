@@ -14,7 +14,7 @@ export class StockDao {
     const qbMain = this.sdpRepo
       .createQueryBuilder('sdp')
       .where('sdp.isu_srt_cd = :isuSrtCd', { isuSrtCd })
-      .orderBy('sdp.id DESC');
+      .orderBy('sdp.base_dt', 'DESC');
 
     return qbMain.getOne();
   }
