@@ -91,10 +91,10 @@ export default class TradingMst {
   finishedAt!: Date | null;
 
   @CreateDateColumn({ type: 'datetime', comment: tDesc.createdAt })
-  createdAt!: Date;
+  createdAt: Date;
 
   @UpdateDateColumn({ type: 'datetime', comment: tDesc.updatedAt })
-  updatedAt!: Date;
+  updatedAt: Date;
 
   // @ManyToOne(() => UserMst)
   // @JoinColumn({ name: 'user_id' })

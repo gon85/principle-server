@@ -6,6 +6,7 @@ import { DataSource, EntityManager, IsNull, Not, Repository } from 'typeorm';
 import { TradingTrxDto } from '../dto/trading-trx.dto';
 import TradingTrx from '../entities/trading-trx.entity';
 import TradingMst from '../entities/trading-mst.entity';
+import { TradingDao } from '@src/dataaccess/tradings/trading.dao';
 
 @Injectable()
 export class TradingService {
@@ -15,49 +16,28 @@ export class TradingService {
     private tmRepo: Repository<TradingMst>,
     @InjectRepository(TradingTrx)
     private ttRepo: Repository<TradingTrx>,
+
+    private tradingDao: TradingDao,
   ) {}
 
   public async getTradingInfo(userId: number, pageInfo: PageInfoDto = PageInfoDto.create(1, 10000)) {
-    const totalCount = await this.tmRepo.count({
-      where: {
-        userId,
-      },
-    });
-    const [noFinishList, noFinishCount] = await this.tmRepo.findAndCount({
-      relations: ['tradingTrxes'],
-      where: {
-        userId,
-        finishedAt: IsNull(),
-      },
-      order: {
-        startedAt: 'DESC',
-      },
-      skip: pageInfo.skip,
-      take: pageInfo.countPerPage,
-    });
+    const totalCount = await this.tradingDao.findTotalCount(userId);
+    const [holdingList, holdingCount] = await this.tradingDao.findHoldingNCount(userId, pageInfo);
 
-    const needCount = pageInfo.countPerPage - noFinishList.length;
-    let finishList: TradingMst[] = [];
+    const needCount = pageInfo.countPerPage - holdingList.length;
+    let finishedList: TradingMst[] = [];
     if (needCount <= 0) {
     } else {
-      finishList = await this.tmRepo.find({
-        relations: ['tradingTrxes'],
-        where: {
-          userId,
-          finishedAt: Not(IsNull()), // LessThan(Utils.date.getNowDayjs().add(1, 'day').format(Utils.date.YYYYsMMsDD)),
-        },
-        order: {
-          finishedAt: 'DESC',
-          startedAt: 'DESC',
-        },
-        skip: needCount === 0 ? pageInfo.skip - noFinishCount : 0,
-        take: needCount === 0 ? pageInfo.countPerPage : needCount,
-      });
+      finishedList = await this.tradingDao.findFinishedNCount(
+        userId,
+        needCount === 0 ? pageInfo.skip - holdingCount : 0,
+        needCount === 0 ? pageInfo.countPerPage : needCount,
+      );
     }
     pageInfo.totalCount = totalCount;
 
     return {
-      list: [...noFinishList, ...finishList],
+      list: [...holdingList, ...finishedList],
       pageInfo,
     };
   }
