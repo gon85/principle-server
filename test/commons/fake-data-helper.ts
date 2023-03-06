@@ -31,7 +31,7 @@ export const fakeDataHelper = {
   fakeStockDailyPriceData(isuSrtCd: string, lastDayjs: dayjs.Dayjs, cnt = -1) {
     // ['날짜', '시가', '고가', '저가', '종가', '거래량', '외국인소진율'],
     const sdtRaw = [
-      ['20220405', 2765.5, 2769.18, 2750.5, 2759.2, 1605993, 0.0],
+      ['20220405', 2765.5, 2769.18, 2750.5, 2750.0, 1605993, 0.0],
       ['20220406', 2739.07, 2747.85, 2730.66, 2735.03, 1321644, 0.0],
       ['20220407', 2714.7, 2718.5, 2693.36, 2695.86, 999275, 0.0],
       ['20220408', 2706.64, 2712.0, 2685.52, 2700.39, 948355, 0.0],
@@ -164,7 +164,7 @@ export const fakeDataHelper = {
         lopr: rj[3],
         clpr: rj[4],
         trqu: rj[5],
-      } as DeepPartial<StockDailyPrice>;
+      } as StockDailyPrice;
     });
     return cnt <= 0 ? sdts : sdts.slice(0, cnt);
   },

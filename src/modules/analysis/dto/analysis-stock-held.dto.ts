@@ -2,7 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { AnalysisPeriodDto } from './analysis-period.dto';
 import { AnalysisProfitDto } from './analysis-profit.dto';
 
-export class AnalysisResultDto {
+/**
+ * 보유종목 분석
+ */
+export class AnalysisStockHeldDto {
   @ApiProperty({
     description: 'corp key',
   })

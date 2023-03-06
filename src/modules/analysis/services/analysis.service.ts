@@ -9,10 +9,15 @@ import { StockService } from '@src/modules/stocks/services/stock.service';
 import TradingMst from '@src/modules/tradings/entities/trading-mst.entity';
 import User from '@src/modules/user/entities/user.entity';
 import { Repository } from 'typeorm';
-import { AnalysisResultDto } from '../dto/analysis-corp-stock.dto';
+import { AnalysisStockHeldDto } from '../dto/analysis-stock-held.dto';
 import { AnalysisPeriodDto } from '../dto/analysis-period.dto';
 import { AnalysisProfitDto } from '../dto/analysis-profit.dto';
 import { AnalysisItemTypes } from '../types/enums';
+import { TradingDao } from '@src/dataaccess/tradings/trading.dao';
+import reducePromises from '@src/commons/utils/reduce-promise';
+import { StockDao } from '@src/dataaccess/stocks/stock.dao';
+import { AnalysisRebuyDto, RebuyStockInfo } from '../dto/analysis-rebuy.dto';
+import { last } from 'lodash';
 
 export class AnalysisService {
   constructor(
@@ -22,6 +27,8 @@ export class AnalysisService {
     private tmRepo: Repository<TradingMst>,
 
     private corpDao: CorpsDao,
+    private stockDao: StockDao,
+    private tradingDao: TradingDao,
     private stockService: StockService,
   ) {}
 
@@ -30,7 +37,7 @@ export class AnalysisService {
     const tmTarget = await this.getTradingByIsuCrt(userId, isuSrtCd, tmId);
     const corp = await this.corpDao.findCorp(isuSrtCd);
 
-    const result = new AnalysisResultDto();
+    const result = new AnalysisStockHeldDto();
     result.isuSrtCd = isuSrtCd;
     result.period = this.forPeriod(tmTarget, userInfo.creterion);
     result.profit = await this.forProfit(corp, tmTarget, userInfo.creterion, result.period.exceedDate > 0);
@@ -50,6 +57,29 @@ export class AnalysisService {
         const period = this.forPeriod(tmTarget, userInfo.creterion);
         return this.forProfit(corp, tmTarget, userInfo.creterion, period.exceedDate > 0);
     }
+  }
+
+  public async analyseItemMarketPrice(userId: number, itemType: AnalysisItemTypes) {
+    // const userInfo = await this.getUserInfo(userId);
+    if (itemType === AnalysisItemTypes.RebuyStrategy) {
+      const tmTargets = await this.tradingDao.findFinishedTrading(userId);
+      const rsiTargets = await reducePromises(tmTargets, async (tmTarget) => {
+        const sdpTarget = await this.stockDao.getStockClosePrice(tmTarget.isuSrtCd);
+        if (sdpTarget.clpr < tmTarget.sellPriceAvg) {
+          return undefined;
+        }
+        const corp = await this.corpDao.findCorp(tmTarget.isuSrtCd);
+        return {
+          isuSrtCd: tmTarget.isuSrtCd,
+          isuAbbrv: corp.isuAbbrv,
+          currentPrice: sdpTarget.clpr,
+          beforeSellPrice: tmTarget.sellPriceAvg,
+          lastTradingAt: last(tmTarget.tradingTrxes).tradingAt,
+        } as RebuyStockInfo;
+      });
+      return AnalysisRebuyDto.createBy(rsiTargets.filter((o) => o));
+    }
+    return null;
   }
 
   private forPeriod(tmTarget: TradingMst, uc: UserCreterion) {

@@ -9,10 +9,11 @@ import {
   refs,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';
-import { AnalysisResultDto } from '../dto/analysis-corp-stock.dto';
+import { AnalysisStockHeldDto } from '../dto/analysis-stock-held.dto';
 import { AnalysisPeriodDto } from '../dto/analysis-period.dto';
 import { AnalysisProfitDto } from '../dto/analysis-profit.dto';
 import { AnalysisService } from '../services/analysis.service';
+import { AnalysisRebuyDto } from '../dto/analysis-rebuy.dto';
 
 @Controller('analysis')
 @ApiTags('analysis')
@@ -20,7 +21,7 @@ import { AnalysisService } from '../services/analysis.service';
 export class AnalysisController {
   constructor(private readonly analysisService: AnalysisService) {}
 
-  @Get(':isuSrtCd')
+  @Get('heldstock/:isuSrtCd')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: `
@@ -28,14 +29,14 @@ export class AnalysisController {
     `,
   })
   @ApiOkResponse({
-    type: AnalysisResultDto,
+    type: AnalysisStockHeldDto,
     description: '이용자 원칙 기준 따른 분석결과',
   })
   analyseCorpStock(@Request() req, @Param('isuSrtCd') isuSrtCd: string, @Query('tmId') tmId: number | undefined) {
     return this.analysisService.analyseCorpStock(req.user.userId, isuSrtCd, tmId);
   }
 
-  @Get(':isuSrtCd/:itemType')
+  @Get('heldstock/:isuSrtCd/:itemType')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: `
@@ -53,5 +54,20 @@ export class AnalysisController {
     @Query('tmId') tmId: number | undefined,
   ) {
     return this.analysisService.analyseItemCorpStock(req.user.userId, isuSrtCd, itemType, tmId);
+  }
+
+  @Get('market/:itemType')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    description: `
+      이용자 원칙 아이템에 따른 분석 결과를 조회합니다.
+    `,
+  })
+  @ApiExtraModels(AnalysisRebuyDto, AnalysisProfitDto)
+  @ApiOkResponse({
+    schema: { anyOf: refs(AnalysisRebuyDto, AnalysisProfitDto) },
+  })
+  analyseItemMarketPrice(@Request() req, @Param('itemType') itemType: string) {
+    return this.analysisService.analyseItemMarketPrice(req.user.userId, itemType);
   }
 }
