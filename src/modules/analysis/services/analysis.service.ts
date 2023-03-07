@@ -18,6 +18,7 @@ import reducePromises from '@src/commons/utils/reduce-promise';
 import { StockDao } from '@src/dataaccess/stocks/stock.dao';
 import { AnalysisRebuyDto, RebuyStockInfo } from '../dto/analysis-rebuy.dto';
 import { last } from 'lodash';
+import { AnalysisMarketpriceDto } from '../dto/analysis-marketprice.dot';
 
 export class AnalysisService {
   constructor(
@@ -80,6 +81,20 @@ export class AnalysisService {
       return AnalysisRebuyDto.createBy(rsiTargets.filter((o) => o));
     }
     return null;
+  }
+
+  public async forPrice(tmTarget: TradingMst, uc: UserCreterion) {
+    const { isuSrtCd, startedAt, buyPriceAvg } = tmTarget;
+    const targetPrice = tmTarget.buyPriceAvg + tmTarget.buyPriceAvg * uc.targetProfitRatio;
+    const sdps = await this.stockDao.findSDPs(isuSrtCd, datetimeUtils.getDayjs(startedAt).format('YYYYMMDD'));
+    let hPrice = tmTarget.buyPriceAvg;
+    let lPrice = tmTarget.buyPriceAvg;
+    sdps.map((sdp) => {
+      if (hPrice < sdp.clpr) hPrice = sdp.clpr;
+      if (lPrice > sdp.clpr) lPrice = sdp.clpr;
+    });
+
+    return AnalysisMarketpriceDto.createBy(sdps[sdps.length - 1].clpr, targetPrice, buyPriceAvg, hPrice, lPrice);
   }
 
   private forPeriod(tmTarget: TradingMst, uc: UserCreterion) {

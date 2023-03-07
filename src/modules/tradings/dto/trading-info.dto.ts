@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { AnalysisMarketpriceDto } from '@src/modules/analysis/dto/analysis-marketprice.dot';
 import TradingMst from '../entities/trading-mst.entity';
 
 export class TradingInfoDto extends TradingMst {
@@ -31,4 +32,11 @@ export class TradingInfoDto extends TradingMst {
     description: '최저가 대비 상승율',
   })
   increaseRateToBot: number;
+
+  static createBy(tm: TradingMst, amd: AnalysisMarketpriceDto) {
+    return {
+      ...tm,
+      ...amd,
+    } as TradingInfoDto;
+  }
 }

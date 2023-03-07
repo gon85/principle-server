@@ -6,9 +6,10 @@ import TradingTrx from './entities/trading-trx.entity';
 import TradingMst from './entities/trading-mst.entity';
 import { TradingService } from './services/trading.service';
 import { DataaccessModule } from '@src/dataaccess/dataaccess.module';
+import { AnalysisModule } from '../analysis/analysis.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, TradingMst, TradingTrx]), DataaccessModule],
+  imports: [TypeOrmModule.forFeature([User, TradingMst, TradingTrx]), DataaccessModule, AnalysisModule],
   controllers: [TradingController],
   providers: [TradingService],
 })

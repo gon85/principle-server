@@ -17,4 +17,9 @@ export class StockSenario {
     const sdpRepo = testingHelper.getRepository<StockDailyPrice>(StockDailyPrice);
     await sdpRepo.insert(sdpParam);
   }
+
+  public async addSDPs(sdpParams: StockDailyPrice[]) {
+    const sdpRepo = testingHelper.getRepository<StockDailyPrice>(StockDailyPrice);
+    await sdpRepo.insert(sdpParams);
+  }
 }

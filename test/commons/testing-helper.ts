@@ -128,7 +128,22 @@ interface Options {
   ucd?: UserCreterionDto;
 }
 
-export async function getUserTester(emailId: string, options: Options = { resetData: true, pw: '01!!xfortesting' }) {
+export async function getUserTester(
+  emailId: string,
+  options: Options = {
+    resetData: true,
+    pw: '01!!xfortesting',
+    ucd: {
+      targetProfitRatio: 10,
+      maxLossRatio: 5,
+      investmentPeriod: 1,
+      investmentPeriodUnit: 'M',
+      maxHoldCorpCnt: 3,
+      maxBuyingAmount: 2000000,
+      maxFocusInterestCnt: 5,
+    },
+  },
+) {
   const client = request(appLola.getHttpServer());
   const user = new UserTester(client);
   const email = `${emailId}@e2e.com`;

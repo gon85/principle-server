@@ -2,10 +2,12 @@ import { HttpStatus } from '@nestjs/common';
 import datetimeUtils, { DATETIME_FORMAT } from '@src/commons/utils/datetime-utils';
 import reducePromises from '@src/commons/utils/reduce-promise';
 import { CorparationService } from '@src/modules/corparation/services/corparation.service';
+import UserCreterionDto from '@src/modules/creterions/dto/user-creterion.dto';
 import StockDailyPrice from '@src/modules/stocks/entities/stock_daily_price.entity';
 import { TradingListDto } from '@src/modules/tradings/dto/trading-list.dto';
 import { TradingTrxDto } from '@src/modules/tradings/dto/trading-trx.dto';
 import TradingMst from '@src/modules/tradings/entities/trading-mst.entity';
+import { StockSenario } from './commons/senarios/stock-senarios';
 import { getUserTester, testingHelper } from './commons/testing-helper';
 
 describe('Test trading e2e ', () => {
@@ -419,5 +421,61 @@ describe('Test trading e2e ', () => {
     const tidRemove = repDel.body as TradingListDto;
     expect(2).toEqual(tidRemove.list.length);
     expect(tidRemove.list[0].remainCount).toEqual(20);
+  });
+
+  it('Test get trading', async () => {
+    const prepareTestData = async (emailId: string) => {
+      const ucdTarget: UserCreterionDto = {
+        targetProfitRatio: 10,
+        maxLossRatio: 5,
+        investmentPeriod: 1,
+        investmentPeriodUnit: 'M',
+        maxHoldCorpCnt: 3,
+        maxBuyingAmount: 2000000,
+        maxFocusInterestCnt: 5,
+      };
+
+      const userTester = await getUserTester(emailId, { ucd: ucdTarget });
+      const cService = testingHelper.getService<CorparationService>(CorparationService);
+
+      // 종목코드 생성
+      await cService.initializeCorpCodes(true);
+      const isuSrtCdTarget = 'KOSPIT';
+      const stockSenario = new StockSenario();
+      await stockSenario.resetStocks(isuSrtCdTarget);
+      // 시세정보 입력
+      const sdps = testDataHelper.fakeStockDailyPriceData(isuSrtCdTarget);
+      await stockSenario.addSDPs(sdps);
+
+      const fakeTradingData = testDataHelper.fakeTradingInputData(isuSrtCdTarget);
+      const ttd = fakeTradingData[0];
+      const rep = await userTester.post('/api/tradings', ttd);
+      rep.status !== HttpStatus.CREATED ? console.log('---->', rep.error) : '';
+      expect(rep.status).toEqual(HttpStatus.CREATED);
+
+      return {
+        userTester,
+        isuSrtCdTarget,
+        ucdTarget,
+        fakeTrading: ttd,
+      };
+    };
+    const { userTester, isuSrtCdTarget, ucdTarget, fakeTrading } = await prepareTestData('otestTrading011');
+
+    const repTrading = await userTester.get('/api/tradings');
+    expect(repTrading.status).toEqual(HttpStatus.OK);
+    const tiResult = repTrading.body as TradingListDto;
+    const tid = tiResult.list[0];
+
+    expect(datetimeUtils.getDayjs(tid.startedAt).format(DATETIME_FORMAT)).toEqual(
+      datetimeUtils.getDayjs(fakeTrading.tradingAt).format(DATETIME_FORMAT),
+    );
+    expect(tid.finishedAt).toBeNull();
+    expect(tid.buyPriceAvg).toEqual(1000);
+    expect(tid.sellPriceAvg).toEqual(0);
+    expect(tid.remainCount).toEqual(10);
+    expect(tid.tradingTrxes.length).toEqual(1);
+    expect(tid.topPrice).toEqual(2500);
+    expect(tid.bottomPrice).toEqual(910);
   });
 });

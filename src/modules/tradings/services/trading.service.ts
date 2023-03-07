@@ -7,6 +7,10 @@ import { TradingTrxDto } from '../dto/trading-trx.dto';
 import TradingTrx from '../entities/trading-trx.entity';
 import TradingMst from '../entities/trading-mst.entity';
 import { TradingDao } from '@src/dataaccess/tradings/trading.dao';
+import { AnalysisService } from '@src/modules/analysis/services/analysis.service';
+import reducePromises from '@src/commons/utils/reduce-promise';
+import { CreterionDao } from '@src/dataaccess/creterions/creterion.dao';
+import { TradingInfoDto } from '../dto/trading-info.dto';
 
 @Injectable()
 export class TradingService {
@@ -17,7 +21,10 @@ export class TradingService {
     @InjectRepository(TradingTrx)
     private ttRepo: Repository<TradingTrx>,
 
+    private creterionDao: CreterionDao,
     private tradingDao: TradingDao,
+
+    private analysisService: AnalysisService,
   ) {}
 
   public async getTradingInfo(userId: number, pageInfo: PageInfoDto = PageInfoDto.create(1, 10000)) {
@@ -36,8 +43,14 @@ export class TradingService {
     }
     pageInfo.totalCount = totalCount;
 
+    const creterion = await this.creterionDao.findByUserId(userId);
+    const tidList = await reducePromises(holdingList, async (tmHold) => {
+      const amd = await this.analysisService.forPrice(tmHold, creterion);
+      return TradingInfoDto.createBy(tmHold, amd);
+    });
+
     return {
-      list: [...holdingList, ...finishedList],
+      list: [...tidList, ...finishedList],
       pageInfo,
     };
   }

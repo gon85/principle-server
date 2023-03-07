@@ -13,5 +13,6 @@ import { AnalysisService } from './services/analysis.service';
   imports: [TypeOrmModule.forFeature([User, UserCreterion, TradingMst, TradingTrx]), DataaccessModule, StocksModule],
   controllers: [AnalysisController],
   providers: [AnalysisService],
+  exports: [AnalysisService],
 })
 export class AnalysisModule {}

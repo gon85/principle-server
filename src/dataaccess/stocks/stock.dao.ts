@@ -18,4 +18,24 @@ export class StockDao {
 
     return qbMain.getOne();
   }
+
+  /**
+   *
+   * @param isuSrtCd
+   * @param fromDate YYYYMMDD
+   * @param toDate YYYMMDD (포함검색)
+   */
+  public findSDPs(isuSrtCd: string, fromDate: string, toDate?: string, order: 'ASC' | 'DESC' = 'ASC') {
+    const qbMain = this.sdpRepo
+      .createQueryBuilder('sdp')
+      .where('sdp.isu_srt_cd = :isuSrtCd', { isuSrtCd })
+      .andWhere('sdp.base_dt >= :fromDate', { fromDate })
+      .orderBy('sdp.base_dt', order);
+
+    if (toDate) {
+      qbMain.andWhere('sdp.base_dt <= :toDate', { toDate });
+    }
+
+    return qbMain.getMany();
+  }
 }
