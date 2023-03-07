@@ -11,6 +11,7 @@ import { AnalysisService } from '@src/modules/analysis/services/analysis.service
 import reducePromises from '@src/commons/utils/reduce-promise';
 import { CreterionDao } from '@src/dataaccess/creterions/creterion.dao';
 import { TradingInfoDto } from '../dto/trading-info.dto';
+import { CorpsDao } from '@src/dataaccess/corps/corps.dao';
 
 @Injectable()
 export class TradingService {
@@ -21,6 +22,7 @@ export class TradingService {
     @InjectRepository(TradingTrx)
     private ttRepo: Repository<TradingTrx>,
 
+    private corpDao: CorpsDao,
     private creterionDao: CreterionDao,
     private tradingDao: TradingDao,
 
@@ -45,8 +47,10 @@ export class TradingService {
 
     const creterion = await this.creterionDao.findByUserId(userId);
     const tidList = await reducePromises(holdingList, async (tmHold) => {
-      const amd = await this.analysisService.forPrice(tmHold, creterion);
-      return TradingInfoDto.createBy(tmHold, amd);
+      // const amd = await this.analysisService.forPrice(tmHold, creterion);
+      const corp = await this.corpDao.findCorp(tmHold.isuSrtCd);
+      const ashd = await this.analysisService.analyseCorpStockBy(corp, tmHold, creterion);
+      return TradingInfoDto.createBy(tmHold, ashd);
     });
 
     return {

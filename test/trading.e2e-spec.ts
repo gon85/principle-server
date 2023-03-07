@@ -1,9 +1,11 @@
 import { HttpStatus } from '@nestjs/common';
 import datetimeUtils, { DATETIME_FORMAT } from '@src/commons/utils/datetime-utils';
+import mathUtils from '@src/commons/utils/math-utils';
 import reducePromises from '@src/commons/utils/reduce-promise';
 import { CorparationService } from '@src/modules/corparation/services/corparation.service';
 import UserCreterionDto from '@src/modules/creterions/dto/user-creterion.dto';
 import StockDailyPrice from '@src/modules/stocks/entities/stock_daily_price.entity';
+import { StockService } from '@src/modules/stocks/services/stock.service';
 import { TradingListDto } from '@src/modules/tradings/dto/trading-list.dto';
 import { TradingTrxDto } from '@src/modules/tradings/dto/trading-trx.dto';
 import TradingMst from '@src/modules/tradings/entities/trading-mst.entity';
@@ -14,6 +16,7 @@ describe('Test trading e2e ', () => {
   beforeAll(testingHelper.beforeAll);
   afterAll(testingHelper.afterAll);
   beforeEach(async () => {
+    testingHelper.resetNow();
     await testingHelper.beforeEach();
   });
 
@@ -447,6 +450,19 @@ describe('Test trading e2e ', () => {
       const sdps = testDataHelper.fakeStockDailyPriceData(isuSrtCdTarget);
       await stockSenario.addSDPs(sdps);
 
+      const stockService = testingHelper.getService<StockService>(StockService);
+      jest
+        .spyOn(stockService, 'getStockDailyPrices')
+        .mockImplementation(
+          async (
+            isuSrtCd: string,
+            isuCd: string,
+            fromDate?: string,
+            toDate?: string,
+            userId?: number,
+          ): Promise<StockDailyPrice[]> => testDataHelper.fakeStockDailyPriceData(isuSrtCdTarget).reverse(),
+        );
+
       const fakeTradingData = testDataHelper.fakeTradingInputData(isuSrtCdTarget);
       const ttd = fakeTradingData[0];
       const rep = await userTester.post('/api/tradings', ttd);
@@ -462,6 +478,7 @@ describe('Test trading e2e ', () => {
     };
     const { userTester, isuSrtCdTarget, ucdTarget, fakeTrading } = await prepareTestData('otestTrading011');
 
+    testingHelper.setNow('2022-11-26 17:01:00');
     const repTrading = await userTester.get('/api/tradings');
     expect(repTrading.status).toEqual(HttpStatus.OK);
     const tiResult = repTrading.body as TradingListDto;
@@ -475,7 +492,12 @@ describe('Test trading e2e ', () => {
     expect(tid.sellPriceAvg).toEqual(0);
     expect(tid.remainCount).toEqual(10);
     expect(tid.tradingTrxes.length).toEqual(1);
-    expect(tid.topPrice).toEqual(2500);
-    expect(tid.bottomPrice).toEqual(910);
+    // 수익 분석
+    expect(tid.analyseResult.profit.profit).toEqual(mathUtils.rate(1000, 1500));
+    // 기간 분석
+    expect(tid.analyseResult.period.exceedTime).toEqual(0);
+    // 시세 가격 분석
+    expect(tid.analyseResult.marketPrice.topPrice).toEqual(2500);
+    expect(tid.analyseResult.marketPrice.bottomPrice).toEqual(910);
   });
 });

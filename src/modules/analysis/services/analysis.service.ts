@@ -18,7 +18,7 @@ import reducePromises from '@src/commons/utils/reduce-promise';
 import { StockDao } from '@src/dataaccess/stocks/stock.dao';
 import { AnalysisRebuyDto, RebuyStockInfo } from '../dto/analysis-rebuy.dto';
 import { last } from 'lodash';
-import { AnalysisMarketpriceDto } from '../dto/analysis-marketprice.dot';
+import { AnalysisMarketpriceDto } from '../dto/analysis-marketprice.dto';
 
 export class AnalysisService {
   constructor(
@@ -42,6 +42,18 @@ export class AnalysisService {
     result.isuSrtCd = isuSrtCd;
     result.period = this.forPeriod(tmTarget, userInfo.creterion);
     result.profit = await this.forProfit(corp, tmTarget, userInfo.creterion, result.period.exceedDate > 0);
+    result.marketPrice = await this.forPrice(tmTarget, userInfo.creterion);
+
+    return result;
+  }
+
+  public async analyseCorpStockBy(corp: Corparation, tmTarget: TradingMst, creterion: UserCreterion) {
+    const result = new AnalysisStockHeldDto();
+    result.isuSrtCd = corp.isuSrtCd;
+    result.corp = corp;
+    result.period = this.forPeriod(tmTarget, creterion);
+    result.profit = await this.forProfit(corp, tmTarget, creterion, result.period.exceedDate > 0);
+    result.marketPrice = await this.forPrice(tmTarget, creterion);
 
     return result;
   }

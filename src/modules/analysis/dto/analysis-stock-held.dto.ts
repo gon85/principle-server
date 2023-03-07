@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import Corparation from '@src/modules/corparation/entities/corparation.entity';
+import { AnalysisMarketpriceDto } from './analysis-marketprice.dto';
 import { AnalysisPeriodDto } from './analysis-period.dto';
 import { AnalysisProfitDto } from './analysis-profit.dto';
 
@@ -12,6 +14,11 @@ export class AnalysisStockHeldDto {
   isuSrtCd: string;
 
   @ApiProperty({
+    description: 'corp key',
+  })
+  corp: Corparation;
+
+  @ApiProperty({
     description: '투자 기간 분석 결과',
   })
   period: AnalysisPeriodDto;
@@ -20,4 +27,9 @@ export class AnalysisStockHeldDto {
     description: '수익율 분석 결과',
   })
   profit: AnalysisProfitDto;
+
+  @ApiProperty({
+    description: '수익율 분석 결과',
+  })
+  marketPrice: AnalysisMarketpriceDto;
 }
