@@ -15,7 +15,7 @@ export class LoggingInterceptor implements NestInterceptor {
           body: { ...body },
         } = request;
         if (process.env.NODE_ENV !== 'test') {
-          console.log('---->', process.env.NODE_ENV, request.url, response.statusCode);
+          // console.log('---->', process.env.NODE_ENV, request.url, response.statusCode);
         }
       }),
     );
