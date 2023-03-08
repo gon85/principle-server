@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -14,6 +14,9 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './commons/Interceptors/logging-Interceptor';
 import { AnalysisModule } from './modules/analysis/analysis.module';
 import { DataaccessModule } from './dataaccess/dataaccess.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { SchedulerModule } from './modules/schedulers/scheduler.module';
+import { LoggerMiddleware } from './commons/middlewares/logger.middleware';
 
 @Module({
   imports: [
@@ -26,6 +29,8 @@ import { DataaccessModule } from './dataaccess/dataaccess.module';
       useClass: MySqlConfigService,
       inject: [MySqlConfigService],
     }),
+    ScheduleModule.forRoot(),
+    SchedulerModule,
     DataaccessModule,
     CorparationModule,
     AuthModule,
@@ -43,4 +48,8 @@ import { DataaccessModule } from './dataaccess/dataaccess.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}
