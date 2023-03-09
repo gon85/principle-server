@@ -16,14 +16,21 @@ export const naverAxios = axios.create({
   withCredentials: true,
 });
 
+export const datagoAxios = axios.create({
+  baseURL: constUri.datago.base,
+  withCredentials: true,
+});
+
 class ClientAxios {
   krxAxios: AxiosInstance;
   dartAxios: AxiosInstance;
   naverAxios: AxiosInstance;
+  datagoAxios: AxiosInstance;
   constructor() {
     this.krxAxios = krxAxios;
     this.dartAxios = dartAxios;
     this.naverAxios = naverAxios;
+    this.datagoAxios = datagoAxios;
   }
 
   async getStockAllCode() {
@@ -74,6 +81,39 @@ class ClientAxios {
     // eslint-disable-next-line no-useless-escape
     const replaceJsonString = repWeekly.data.replace(/\'/g, '"');
     return JSON.parse(replaceJsonString);
+  }
+
+  /**
+   *
+   * @param isuCd
+   * @param fromdate
+   * @param todate 미포함됨.
+   * @param kindStkcertTpNm
+   * @returns
+   */
+  async getStockPriceInDatago(isuCd: string, fromdate: string, todate: string, kindStkcertTpNm = '보통주') {
+    if (kindStkcertTpNm === 'ETF') {
+      const repSDP = await this.datagoAxios.get(constUri.datago.etfStockPrice.uri, {
+        params: constUri.datago.etfStockPrice.query({ likeSrtnCd: isuCd, beginBasDt: fromdate, endBasDt: todate }),
+      });
+      return repSDP.data;
+    } else if (kindStkcertTpNm === 'INDEX') {
+      const repSDP = await this.datagoAxios.get(constUri.datago.indexStockPrice.uri, {
+        params: constUri.datago.indexStockPrice.query({ idxNm: isuCd, beginBasDt: fromdate, endBasDt: todate }),
+      });
+      return repSDP.data;
+    } else {
+      const repSDP = await this.datagoAxios.get(constUri.datago.stockPrice.uri, {
+        params: constUri.datago.stockPrice.query({ likeSrtnCd: isuCd, beginBasDt: fromdate, endBasDt: todate }),
+      });
+      return repSDP.data;
+    }
+  }
+  async getStockPriceInDatagoByDate(baseDt: string) {
+    const repSDP = await this.datagoAxios.get(constUri.datago.stockPrice.uri, {
+      params: constUri.datago.stockPrice.query({ basDt: baseDt, numOfRows: 5000 }),
+    });
+    return repSDP.data;
   }
 }
 

@@ -34,8 +34,8 @@ export class CorparationService {
     const kospi = this.corRepo.create({
       isuSrtCd: 'KOSPI',
       isuCd: 'KOSPI',
-      isuAbbrv: '코스피 (KOSPI)',
-      kindStkcertTpNm: '',
+      isuAbbrv: '코스피',
+      kindStkcertTpNm: 'INDEX',
       isuNm: 'KOSPI',
       isuNmDisassemble: hangul.disassembleToString('코스피 (KOSPI)'),
       corpCode: '',
@@ -43,8 +43,8 @@ export class CorparationService {
     const kosdaq = this.corRepo.create({
       isuSrtCd: 'KOSDAQ',
       isuCd: 'KOSDAQ',
-      isuAbbrv: '코스닥 (KOSDAQ)',
-      kindStkcertTpNm: '',
+      isuAbbrv: '코스닥',
+      kindStkcertTpNm: 'INDEX',
       isuNm: 'KOSDAQ',
       isuNmDisassemble: hangul.disassembleToString('코스닥 (KOSDAQ)'),
       corpCode: '',

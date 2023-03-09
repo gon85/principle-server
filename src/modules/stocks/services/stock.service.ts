@@ -9,7 +9,10 @@ import dayjs, { Dayjs } from 'dayjs';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 import { StockPriceInfoDto } from '../dto/stock-price-info.dto';
 import StockDailyPrice from '../entities/stock_daily_price.entity';
-import StockContants from '../types/stock-constants';
+import { CorpsDao } from '@src/dataaccess/corps/corps.dao';
+import { isEmpty } from 'lodash';
+import reducePromises from '@src/commons/utils/reduce-promise';
+import { CrawlingOptions } from '../dto/crawling-options.dto';
 
 @Injectable()
 export class StockService {
@@ -22,6 +25,8 @@ export class StockService {
     private uchRepo: Repository<UserCorpHst>,
     @InjectRepository(UserCorpStats)
     private ucsRepo: Repository<UserCorpStats>,
+
+    private corpDao: CorpsDao,
   ) {}
 
   public async getStockDailyPrice(
@@ -86,12 +91,86 @@ export class StockService {
 
     // 1. 금일데이타 조회
     // 2. 이력저장 (마지막이 오늘이 아닌 경우는 추가 조회 임.)
-    if (withToday) {
+    if (withToday && sdt.length > 0) {
       await this.appendTodayNCrawlingData(sdt, isuSrtCd, isuCd, datetimeUtils.getNowDayjs());
       await this.addUserStockLog(isuSrtCd, sdt[sdt.length - 1].clpr, userId);
     }
 
     return sdt;
+  }
+
+  public async crawlingDailyPriceByDate(fromDate: string) {
+    // 보통주
+    const rep = await clientAxios.getStockPriceInDatagoByDate(fromDate);
+    const sdps = rep.response.body.items.item.map((item) => {
+      return StockDailyPrice.createBy(item.srtnCd, item);
+    });
+    await this.sdpRepo.save(sdps);
+
+    const toDate = datetimeUtils.getDayjs(fromDate, 'YYYYMMDD').add(1, 'day').format('YYYYMMDD');
+    // 그외 처리.
+    const corpTargets = await this.corpDao.findAllWithoutOrdinary();
+    await reducePromises(corpTargets, async (corp) => {
+      await this.crawlingDailyPriceBy(corp, { fromDate, toDate, isReset: false });
+    });
+  }
+
+  public async crawlingDailyPriceByCorp(isuSrtCd: string, crawlingOptions: CrawlingOptions) {
+    const {
+      fromDate = '20200101',
+      toDate = datetimeUtils.getTodayString('YYYYMMDD'),
+      isReset = true,
+    } = crawlingOptions;
+
+    const corp = await this.corpDao.findCorp(isuSrtCd);
+    await this.crawlingDailyPriceBy(corp, { fromDate, toDate, isReset });
+  }
+
+  private async crawlingDailyPriceBy(corp: Corparation, crawlingOptions: Required<CrawlingOptions>) {
+    const { fromDate, toDate, isReset } = crawlingOptions;
+    const { isuSrtCd, kindStkcertTpNm } = corp;
+
+    const spds =
+      isEmpty(kindStkcertTpNm) || kindStkcertTpNm === 'INDEX'
+        ? await this.crawlingIndexPrice(isuSrtCd, corp.isuAbbrv, fromDate, toDate)
+        : kindStkcertTpNm === 'ETF'
+        ? await this.crawlingETFPrice(isuSrtCd, fromDate, toDate)
+        : await this.crawlingStockPrice(isuSrtCd, fromDate, toDate);
+
+    if (isReset) {
+      await this.sdpRepo.delete({ isuSrtCd });
+    }
+    await this.sdpRepo.save(spds);
+  }
+
+  private async crawlingIndexPrice(isuSrtCd: string, idxNm: string, fromDate: string, toDate: string) {
+    const rep = await clientAxios.getStockPriceInDatago(idxNm, fromDate, toDate, 'INDEX');
+    const sdps = rep.response.body.items.item.map((item) => {
+      return StockDailyPrice.createByIndex(isuSrtCd, item);
+    });
+
+    return sdps;
+  }
+
+  private async crawlingETFPrice(isuSrtCd: string, fromDate: string, toDate: string) {
+    const rep = await clientAxios.getStockPriceInDatago(isuSrtCd, fromDate, toDate, 'ETF');
+    if (rep.response) {
+      const sdps = rep.response.body.items.item.map((item) => {
+        return StockDailyPrice.createByEtf(isuSrtCd, item);
+      });
+
+      return sdps;
+    }
+    return [];
+  }
+
+  private async crawlingStockPrice(isuSrtCd: string, fromDate: string, toDate: string) {
+    const rep = await clientAxios.getStockPriceInDatago(isuSrtCd, fromDate, toDate);
+    const sdps = rep.response.body.items.item.map((item) => {
+      return StockDailyPrice.createBy(isuSrtCd, item);
+    });
+
+    return sdps;
   }
 
   private async getStockDailyPriceInDB(isuSrtCd: string, isuCd: string, fromDayjs: Dayjs, toDayjs: Dayjs) {
@@ -125,11 +204,13 @@ export class StockService {
       'day',
     );
 
-    const savedSpds = await this.addStockDailyPriceBy(isuSrtCd, repJsonArray);
-    if (isPreAppend) {
-      sdtArray.unshift(...savedSpds.reverse());
-    } else {
-      sdtArray.push(...savedSpds.reverse());
+    if (repJsonArray.length > 0) {
+      const savedSpds = await this.addStockDailyPriceBy(isuSrtCd, repJsonArray);
+      if (isPreAppend) {
+        sdtArray.unshift(...savedSpds.reverse());
+      } else {
+        sdtArray.push(...savedSpds.reverse());
+      }
     }
   }
 

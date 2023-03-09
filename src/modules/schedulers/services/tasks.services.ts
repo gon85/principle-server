@@ -11,9 +11,8 @@ export class TasksService implements OnModuleInit {
 
   onModuleInit() {
     const cronSdp = this.configService.get<string>('CRON_SDP');
-    if (cronSdp) {
+    if (cronSdp && process.env.NODE_ENV !== 'test') {
       const job = new CronJob(cronSdp, this.handleCron);
-
       this.schedulerRegistry.addCronJob('conr_sdp', job);
       job.start();
     }
@@ -22,6 +21,6 @@ export class TasksService implements OnModuleInit {
   // @Cron('* * * * * *')
   handleCron() {
     // logger.debug('Called when the current second is 45');
-    console.log('----> ????');
+    console.log('----> Called!!!');
   }
 }

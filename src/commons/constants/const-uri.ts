@@ -1,3 +1,4 @@
+import { isNil, omitBy } from 'lodash';
 import * as querystring from 'querystring';
 
 const dart = {
@@ -163,6 +164,104 @@ const constUri = {
           code,
         };
         return querystring.stringify(formdata);
+      },
+    },
+  },
+  datago: {
+    base: 'https://apis.data.go.kr',
+    stockPrice: {
+      uri: '/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo',
+      query({
+        likeSrtnCd,
+        basDt,
+        beginBasDt,
+        endBasDt,
+        numOfRows = 1000,
+        pageNo = 1,
+      }: {
+        likeSrtnCd?: string;
+        basDt?: string;
+        beginBasDt?: string;
+        endBasDt?: string;
+        numOfRows?: number;
+        pageNo?: number;
+      }) {
+        const serviceKey = '96yKoJzshWLp1iTDgcqw8DiQX1lCvnnK4WqVNyNZSlr4Prx9v+OVFjz0LQyXWNEQ5Hxmt/FqBjxJ7QfR2V6/gQ==';
+        const q = {
+          serviceKey,
+          likeSrtnCd,
+          basDt,
+          beginBasDt,
+          endBasDt,
+          numOfRows,
+          pageNo,
+          resultType: 'json',
+        };
+        return omitBy(q, isNil);
+      },
+    },
+    // https://apis.data.go.kr/1160100/service/GetSecuritiesProductInfoService/getETFPriceInfo?serviceKey=96yKoJzshWLp1iTDgcqw8DiQX1lCvnnK4WqVNyNZSlr4Prx9v%2BOVFjz0LQyXWNEQ5Hxmt%2FFqBjxJ7QfR2V6%2FgQ%3D%3D&
+    etfStockPrice: {
+      uri: '/1160100/service/GetSecuritiesProductInfoService/getETFPriceInfo',
+      query({
+        likeSrtnCd,
+        basDt,
+        beginBasDt,
+        endBasDt,
+        numOfRows = 1000,
+        pageNo = 1,
+      }: {
+        likeSrtnCd: string;
+        basDt?: string;
+        beginBasDt: string;
+        endBasDt: string;
+        numOfRows?: number;
+        pageNo?: number;
+      }) {
+        const serviceKey = '96yKoJzshWLp1iTDgcqw8DiQX1lCvnnK4WqVNyNZSlr4Prx9v+OVFjz0LQyXWNEQ5Hxmt/FqBjxJ7QfR2V6/gQ==';
+        const q = {
+          serviceKey,
+          likeSrtnCd,
+          basDt,
+          beginBasDt,
+          endBasDt,
+          numOfRows,
+          pageNo,
+          resultType: 'json',
+        };
+        return omitBy(q, isNil);
+      },
+    },
+    // https://apis.data.go.kr/1160100/service/GetMarketIndexInfoService/getStockMarketIndex?serviceKey=96yKoJzshWLp1iTDgcqw8DiQX1lCvnnK4WqVNyNZSlr4Prx9v%2BOVFjz0LQyXWNEQ5Hxmt%2FFqBjxJ7QfR2V6%2FgQ%3D%3D&idxNm=%EC%BD%94%EC%8A%A4%ED%94%BC
+    indexStockPrice: {
+      uri: '/1160100/service/GetMarketIndexInfoService/getStockMarketIndex',
+      query({
+        idxNm,
+        basDt,
+        beginBasDt,
+        endBasDt,
+        numOfRows = 1000,
+        pageNo = 1,
+      }: {
+        idxNm: string;
+        basDt?: string;
+        beginBasDt: string;
+        endBasDt: string;
+        numOfRows?: number;
+        pageNo?: number;
+      }) {
+        const serviceKey = '96yKoJzshWLp1iTDgcqw8DiQX1lCvnnK4WqVNyNZSlr4Prx9v+OVFjz0LQyXWNEQ5Hxmt/FqBjxJ7QfR2V6/gQ==';
+        const q = {
+          serviceKey,
+          idxNm,
+          basDt,
+          beginBasDt,
+          endBasDt,
+          numOfRows,
+          pageNo,
+          resultType: 'json',
+        };
+        return omitBy(q, isNil);
       },
     },
   },

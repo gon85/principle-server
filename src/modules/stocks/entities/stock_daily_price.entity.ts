@@ -68,18 +68,125 @@ export default class StockDailyPrice {
   @Column({ type: 'int', unsigned: true, comment: sdtDesc.trqu })
   trqu!: number;
 
-  @Column({ type: 'int', unsigned: true, nullable: true, comment: sdtDesc.trPrc })
-  trPrc?: number;
+  @Column({ type: 'bigint', unsigned: true, nullable: true, comment: sdtDesc.trPrc })
+  trPrc?: BigInt;
 
-  @Column({ type: 'int', unsigned: true, nullable: true, comment: sdtDesc.lstgStCnt })
-  lstgStCnt?: number;
+  @Column({ type: 'bigint', unsigned: true, nullable: true, comment: sdtDesc.lstgStCnt })
+  lstgStCnt?: BigInt;
 
-  @Column({ type: 'int', unsigned: true, nullable: true, comment: sdtDesc.mrktTotAmt })
-  mrktTotAmt?: number;
+  @Column({ type: 'bigint', unsigned: true, nullable: true, comment: sdtDesc.mrktTotAmt })
+  mrktTotAmt?: BigInt;
 
   @CreateDateColumn({ type: 'datetime' })
-  createdAt!: Date;
+  createdAt?: Date;
 
   @UpdateDateColumn({ type: 'datetime' })
-  updatedAt!: Date;
+  updatedAt?: Date;
+
+  // basDt:'20230307'
+  // bssIdxClpr:'319.8'
+  // bssIdxIdxNm:'코스피 200'
+  // clpr:'15150'
+  // fltRt:'-1.01'
+  // hipr:'15400'
+  // isinCd:'KR7122630007'
+  // itmsNm:'KODEX 레버리지'
+  // lopr:'15150'
+  // mkp:'15245'
+  // mrktTotAmt:'1904355000000'
+  // nav:'15264.81'
+  // nPptTotAmt:'2022586664514'
+  // srtnCd:'122630'
+  // stLstgCnt:'125700000'
+  // trPrc:'247637892975'
+  // trqu:'16212545'
+  // vs:'-155'
+  static createByEtf(isuSrtCd: string, datagoEtf: any) {
+    const { basDt, mrktCtg, clpr, vs, fltRt, mkp, hipr, lopr, trqu, trPrc, mrktTotAmt } = datagoEtf;
+    return {
+      isuSrtCd,
+      baseDt: basDt,
+      mrktCtg,
+      clpr,
+      vs,
+      fltRt,
+      mkp,
+      hipr,
+      lopr,
+      trqu,
+      trPrc,
+      mrktTotAmt,
+    } as StockDailyPrice;
+  }
+
+  // basDt:  '20230307'
+  // basIdx:  '100'
+  // basPntm:  '19800104'
+  // clpr:  '2463.35'
+  // epyItmsCnt:  '820'
+  // fltRt:  '.03'
+  // hipr:  '2475.73'
+  // idxCsf:  'KOSPI시리즈'
+  // idxNm:  '코스피'
+  // lopr:  '2455.65'
+  // lstgMrktTotAmt:  '1945941991553062'
+  // lsYrEdVsFltRg:  '227'
+  // lsYrEdVsFltRt:  '10.15'
+  // mkp:  '2457.04'
+  // trPrc:  '10732465515437'
+  // trqu:  '450481378'
+  // vs:  '.73'
+  // yrWRcrdHgst:  '2484.02'
+  // yrWRcrdHgstDt:  '20230127'
+  // yrWRcrdLwst:  '2218.68'
+  // yrWRcrdLwstDt:  '20230103'
+  static createByIndex(isuSrtCd: string, datagoIndex: any) {
+    const { basDt, clpr, vs, fltRt, mkp, hipr, lopr, trqu, trPrc } = datagoIndex;
+    return {
+      isuSrtCd,
+      baseDt: basDt,
+      clpr,
+      vs,
+      fltRt,
+      mkp,
+      hipr,
+      lopr,
+      trqu,
+      trPrc,
+    } as StockDailyPrice;
+  }
+
+  // basDt:  '20230307'
+  // clpr:  '4645'
+  // fltRt:  '-5.2'
+  // hipr:  '4875'
+  // isinCd:  'KR7030210009'
+  // itmsNm:  '다올투자증권'
+  // lopr:  '4635'
+  // lstgStCnt:  '60314092'
+  // mkp:  '4850'
+  // mrktCtg:  'KOSPI'
+  // mrktTotAmt:  '280158957340'
+  // srtnCd:  '030210'
+  // trPrc:  '2106079465'
+  // trqu:  '446935'
+  // vs:  '-255'
+  static createBy(isuSrtCd: string, datago: any) {
+    const { basDt, mrktCtg, clpr, vs, fltRt, mkp, hipr, lopr, trqu, trPrc, lstgStCnt, mrktTotAmt } = datago;
+    return {
+      isuSrtCd,
+      baseDt: basDt,
+      mrktCtg,
+      clpr,
+      vs,
+      fltRt,
+      mkp,
+      hipr,
+      lopr,
+      trqu,
+      trPrc,
+      lstgStCnt,
+      mrktTotAmt,
+    } as StockDailyPrice;
+  }
 }

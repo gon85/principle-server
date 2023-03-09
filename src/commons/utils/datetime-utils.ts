@@ -14,7 +14,10 @@ const datetimeUtils = {
   getTodayDayjs() {
     return datetimeUtils.getDayjs(datetimeUtils.getNowDayjs().format('YYYY-MM-DD'), 'YYYY-MM-DD');
   },
-  getNowString(format = DATETIME_FORMAT) {
+  getTodayString(format = DATETIME_FORMAT) {
+    return datetimeUtils.getNowDayjs().format(format);
+  },
+  getNowString(format = `${DATETIME_FORMAT} ${TIME_FROMAT}`) {
     return datetimeUtils.getNowDayjs().format(format);
   },
   getDayjs(date?: dayjs.ConfigType, format?: dayjs.OptionType, strict?: boolean) {

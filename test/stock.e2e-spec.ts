@@ -131,3 +131,15 @@ describe('Test stock e2e', () => {
     expect(jestNaver).not.toHaveBeenCalled();
   });
 });
+
+describe('Test axios', () => {
+  it('Test datago', async () => {
+    // https://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo?serviceKey=96yKoJzshWLp1iTDgcqw8DiQX1lCvnnK4WqVNyNZSlr4Prx9v%2BOVFjz0LQyXWNEQ5Hxmt%2FFqBjxJ7QfR2V6%2FgQ%3D%3D&likeSrtnCd=000040
+    // const repETF = await clientAxios.getStockPriceInDatago('122630', '20220101', '20230309', 'ETF');
+    // console.log('--->', repETF);
+    // const repIndex = await clientAxios.getStockPriceInDatago('코스피', '20220101', '20230308', 'INDEX');
+    // console.log('--->', repIndex);
+    const rep = await clientAxios.getStockPriceInDatago('030210', '20220101', '20230310');
+    console.log('--->', rep);
+  });
+});
