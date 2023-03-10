@@ -20,32 +20,32 @@ export class AnalysisProfitDto {
   @ApiProperty({
     description: '매수평균가',
   })
-  avgBuyPrice: number;
+  buyPriceAvg: number;
 
   @ApiProperty({
     description: '매수금합계',
   })
-  sumBuyPrice: number;
+  buyPriceSum: number;
 
   @ApiProperty({
     description: '매수량합계',
   })
-  sumBuyCnt!: number;
+  buyCntSum!: number;
 
   @ApiProperty({
     description: '매도금합계',
   })
-  sumSellPrice: number;
+  sellPriceSum: number;
 
   @ApiProperty({
     description: '매도량합계',
   })
-  sumSellCnt!: number;
+  sellCntSum!: number;
 
   @ApiProperty({
     description: '매도평균가',
   })
-  avgSellPrice: number;
+  sellPriceAvg: number;
 
   @ApiProperty({
     description: '보유수량',
@@ -69,7 +69,8 @@ export class AnalysisProfitDto {
     tmTarget: TradingMst,
     isExceedPeroid: boolean,
   ) {
-    const profit = ((currentPrice - tmTarget.buyPriceAvg) * 100) / tmTarget.buyPriceAvg;
+    const price = Math.floor(currentPrice);
+    const profit = ((price - tmTarget.buyPriceAvg) * 100) / tmTarget.buyPriceAvg;
     const sentences =
       profit >= 0
         ? AnalysisProfitDto.createProfitSentencesBy(targetProfitRatio, profit, isExceedPeroid)
@@ -78,15 +79,15 @@ export class AnalysisProfitDto {
     return {
       targetProfitRatio,
       maxLossRatio,
-      currentPrice,
-      sumBuyPrice: 0,
-      sumBuyCnt: tmTarget.buyCntSum || 0,
-      avgBuyPrice: tmTarget.buyPriceAvg || 0,
-      sumSellPrice: 0,
-      sumSellCnt: tmTarget.sellCntSum || 0,
-      avgSellPrice: tmTarget.sellPriceAvg || 0,
+      currentPrice: price,
+      buyPriceSum: 0,
+      buyCntSum: tmTarget.buyCntSum || 0,
+      buyPriceAvg: tmTarget.buyPriceAvg || 0,
+      sellPriceSum: 0,
+      sellCntSum: tmTarget.sellCntSum || 0,
+      sellPriceAvg: tmTarget.sellPriceAvg || 0,
       remainCount: tmTarget.remainCount || 0,
-      profit,
+      profit: Number(profit.toFixed(2)),
       sentences,
     } as AnalysisProfitDto;
   }
