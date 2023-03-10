@@ -20,7 +20,7 @@ describe('NOT Test user e2e ', () => {
   it('NOT Test 개발을 위한 정상적인 이용자 생성', async () => {
     const ucdTarget: UserCreterionDto = {
       targetProfitRatio: 10,
-      maxLossRatio: 5,
+      maxLossRatio: -5,
       investmentPeriod: 1,
       investmentPeriodUnit: 'M',
       maxHoldCorpCnt: 3,

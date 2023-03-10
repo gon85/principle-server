@@ -430,7 +430,7 @@ describe('Test trading e2e ', () => {
     const prepareTestData = async (emailId: string) => {
       const ucdTarget: UserCreterionDto = {
         targetProfitRatio: 10,
-        maxLossRatio: 5,
+        maxLossRatio: -5,
         investmentPeriod: 1,
         investmentPeriodUnit: 'M',
         maxHoldCorpCnt: 3,
@@ -482,6 +482,7 @@ describe('Test trading e2e ', () => {
     const repTrading = await userTester.get('/api/tradings');
     expect(repTrading.status).toEqual(HttpStatus.OK);
     const tiResult = repTrading.body as TradingListDto;
+    console.log('---->', JSON.stringify(tiResult));
     const tid = tiResult.list[0];
 
     expect(datetimeUtils.getDayjs(tid.startedAt).format(DATETIME_FORMAT)).toEqual(

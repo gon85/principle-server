@@ -27,7 +27,7 @@ describe('Test creterions e2e ', () => {
 
     const ucdTarget: UserCreterionDto = {
       targetProfitRatio: 10,
-      maxLossRatio: 5,
+      maxLossRatio: -5,
       investmentPeriod: 1,
       investmentPeriodUnit: 'M',
       maxHoldCorpCnt: 3,

@@ -135,7 +135,7 @@ export async function getUserTester(
     pw: '01!!xfortesting',
     ucd: {
       targetProfitRatio: 10,
-      maxLossRatio: 5,
+      maxLossRatio: -5,
       investmentPeriod: 1,
       investmentPeriodUnit: 'M',
       maxHoldCorpCnt: 3,

@@ -49,7 +49,7 @@ describe('Test aynalysis e2e', () => {
 
     const ucdTarget: UserCreterionDto = {
       targetProfitRatio: 10,
-      maxLossRatio: 5,
+      maxLossRatio: -5,
       investmentPeriod: 1,
       investmentPeriodUnit: 'M',
       maxHoldCorpCnt: 3,
@@ -118,7 +118,7 @@ describe('Test aynalysis e2e', () => {
 
     const ucdTarget: UserCreterionDto = {
       targetProfitRatio: 10,
-      maxLossRatio: 5,
+      maxLossRatio: -5,
       investmentPeriod: 1,
       investmentPeriodUnit: 'M',
       maxHoldCorpCnt: 3,
@@ -138,9 +138,9 @@ describe('Test aynalysis e2e', () => {
       hipr: 2600 + 260,
       lopr: 2600,
       trqu: 10000,
-      trPrc: 10000,
-      lstgStCnt: 100,
-      mrktTotAmt: 100000,
+      trPrc: BigInt(10000),
+      lstgStCnt: BigInt(100),
+      mrktTotAmt: BigInt(100000),
       createdAt: datetimeUtils.getDayjs().toDate(),
       updatedAt: datetimeUtils.getDayjs().toDate(),
     } as StockDailyPrice;
@@ -165,10 +165,10 @@ describe('Test aynalysis e2e', () => {
     expect(apdProfit.targetProfitRatio).toEqual(ucdTarget.targetProfitRatio);
     expect(apdProfit.maxLossRatio).toEqual(ucdTarget.maxLossRatio);
     expect(apdProfit.currentPrice).toEqual(2600 + 260);
-    expect(apdProfit.avgBuyPrice).toEqual(2600);
-    expect(apdProfit.sumBuyPrice).toEqual(0);
-    expect(apdProfit.avgSellPrice).toEqual(0);
-    expect(apdProfit.sumSellPrice).toEqual(0);
+    expect(apdProfit.buyPriceAvg).toEqual(2600);
+    expect(apdProfit.buyPriceSum).toEqual(0);
+    expect(apdProfit.sellPriceAvg).toEqual(0);
+    expect(apdProfit.sellPriceSum).toEqual(0);
     expect(apdProfit.remainCount).toEqual(10);
     expect(apdProfit.profit).toEqual(10.0);
     expect(apdProfit.sentences.length > 0).toBeTruthy();
@@ -182,10 +182,10 @@ describe('Test aynalysis e2e', () => {
     expect(apdLoss.targetProfitRatio).toEqual(ucdTarget.targetProfitRatio);
     expect(apdLoss.maxLossRatio).toEqual(ucdTarget.maxLossRatio);
     expect(apdLoss.currentPrice).toEqual(2600 - 260);
-    expect(apdLoss.avgBuyPrice).toEqual(2600);
-    expect(apdLoss.sumBuyPrice).toEqual(0);
-    expect(apdLoss.avgSellPrice).toEqual(0);
-    expect(apdLoss.sumSellPrice).toEqual(0);
+    expect(apdLoss.buyPriceAvg).toEqual(2600);
+    expect(apdLoss.buyPriceSum).toEqual(0);
+    expect(apdLoss.sellPriceAvg).toEqual(0);
+    expect(apdLoss.sellPriceSum).toEqual(0);
     expect(apdLoss.remainCount).toEqual(10);
     expect(apdLoss.profit).toEqual(-10.0);
     expect(apdLoss.sentences.length > 0).toBeTruthy();
@@ -197,7 +197,7 @@ describe('Test aynalysis e2e', () => {
     const prepareTestData = async (emailId: string) => {
       const ucdTarget: UserCreterionDto = {
         targetProfitRatio: 10,
-        maxLossRatio: 5,
+        maxLossRatio: -5,
         investmentPeriod: 1,
         investmentPeriodUnit: 'M',
         maxHoldCorpCnt: 3,
