@@ -22,7 +22,7 @@ import { LoggerMiddleware } from './commons/middlewares/logger.middleware';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'],
     }),
     TypeOrmModule.forRootAsync({
       imports: [AppConfigModule],
