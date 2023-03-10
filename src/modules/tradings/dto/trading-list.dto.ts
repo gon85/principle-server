@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import PageInfoDto from '@src/commons/dto/page-info.dto';
-import TradingMst from '../entities/trading-mst.entity';
 import { TradingInfoDto } from './trading-info.dto';
 
 export class TradingListDto {

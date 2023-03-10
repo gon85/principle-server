@@ -54,6 +54,7 @@ export class AnalysisService {
     result.period = this.forPeriod(tmTarget, creterion);
     result.profit = await this.forProfit(corp, tmTarget, creterion, result.period.exceedDate > 0);
     result.marketPrice = await this.forPrice(tmTarget, creterion);
+    result.sellReasons = AnalysisStockHeldDto.buildSellReason(result);
 
     return result;
   }
